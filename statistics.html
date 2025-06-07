@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics - My Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <button id="backBtn" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Home
+            </button>
+            <div class="text-center">
+                <h1 class="text-3xl font-light text-gray-800 dark:text-gray-100">Journal Insights</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Your personal analytics powered by AI</p>
+            </div>
+            <div class="w-32"></div>
+        </div>
+
+        <!-- AI-Generated Insights Summary -->
+        <div class="bg-gradient-to-r from-purple-500 to-blue-600 dark:from-purple-600 dark:to-blue-700 rounded-lg shadow-lg p-6 mb-8 text-white">
+            <h2 class="text-2xl font-bold mb-4">🧠 AI Journal Insights</h2>
+            <div id="aiInsights" class="text-lg opacity-90">
+                <!-- AI insights will be populated here -->
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
+                <div class="text-3xl font-bold text-blue-600 dark:text-blue-400" id="totalEntries">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Journal Entries</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500 mt-1" id="entriesThisMonth">0 this month</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
+                <div class="text-3xl font-bold text-green-600 dark:text-green-400" id="streakDays">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Current Streak</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">days writing</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
+                <div class="text-3xl font-bold text-orange-600 dark:text-orange-400" id="averageMood">😊</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Average Mood</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500 mt-1" id="moodTrend">↗️ improving</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
+                <div class="text-3xl font-bold text-purple-600 dark:text-purple-400" id="totalWords">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Words</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500 mt-1" id="avgWordsPerEntry">0 avg per entry</div>
+            </div>
+        </div>
+
+        <!-- Mood Analytics -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Mood Distribution -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Mood Distribution</h3>
+                <div id="moodChart" class="space-y-3">
+                    <!-- Mood chart will be generated here -->
+                </div>
+            </div>
+
+            <!-- Mood Timeline -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Mood Timeline (Last 30 Days)</h3>
+                <div id="moodTimeline" class="grid grid-cols-7 gap-2">
+                    <!-- Timeline will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- AI-Powered Personal Insights -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">🤖 Personal Growth Insights</h3>
+            <div id="personalInsights" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Personal insights will be populated here -->
+            </div>
+        </div>
+
+        <!-- Habit Insights -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">📊 Habit Performance</h3>
+            <div id="habitStats" class="space-y-4">
+                <!-- Habit statistics will be populated here -->
+            </div>
+        </div>
+
+        <!-- Weekly/Monthly Patterns -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Weekly Patterns -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Weekly Patterns</h3>
+                <div id="weeklyPatterns" class="space-y-3">
+                    <!-- Weekly patterns will be generated here -->
+                </div>
+            </div>
+
+            <!-- Monthly Insights -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Monthly Analysis</h3>
+                <div id="monthlyInsights" class="space-y-3">
+                    <!-- Monthly insights will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Emotional Journey Map -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">🌊 Emotional Journey</h3>
+            <div id="emotionalJourney" class="space-y-4">
+                <!-- Emotional journey insights will be populated here -->
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="bg-gradient-to-r from-green-500 to-teal-600 dark:from-green-600 dark:to-teal-700 rounded-lg shadow-lg p-6 text-white">
+            <h3 class="text-xl font-bold mb-4">💡 AI Recommendations</h3>
+            <div id="recommendations" class="space-y-3">
+                <!-- AI recommendations will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class JournalStatistics {
+            constructor() {
+                this.entries = this.loadEntries();
+                this.moods = this.loadMoods();
+                this.habits = this.loadHabits();
+                this.tasks = this.loadTasks();
+                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Happy', 'Content', 'Excited'];
+                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😄', '😌', '🤩'];
+                this.init();
+            }
+
+            init() {
+                // Initialize dark mode
+                this.initDarkMode();
+                
+                this.calculateMetrics();
+                this.renderMoodDistribution();
+                this.renderMoodTimeline();
+                this.renderWeeklyPatterns();
+                this.renderMonthlyInsights();
+                this.renderHabitStats();
+                this.generateAIInsights();
+                this.generatePersonalInsights();
+                this.renderEmotionalJourney();
+                this.generateRecommendations();
+                this.bindEvents();
+            }
+
+            initDarkMode() {
+                const isDarkMode = localStorage.getItem('darkMode') === 'true';
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                }
+            }
+
+            // ... existing methods remain the same ...
+        }
+
+        const stats = new JournalStatistics();
+    </script>
+</body>
+</html> 

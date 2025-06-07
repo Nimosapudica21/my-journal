@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habits - My Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <button id="backBtn" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Home
+            </button>
+            <div class="text-center">
+                <h1 class="text-3xl font-light text-gray-800 dark:text-gray-100">Habit Tracking</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Build better habits with custom frequency</p>
+            </div>
+            <div class="w-32"></div>
+        </div>
+
+        <!-- Add Habit Form -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-light text-gray-800 dark:text-gray-100 mb-4">Add New Habit</h2>
+            <form id="habitForm" class="space-y-4">
+                <div class="flex space-x-3">
+                    <input 
+                        type="text" 
+                        id="habitName" 
+                        placeholder="Habit name (e.g., Drink 8 glasses of water)"
+                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                        required
+                    >
+                    <button 
+                        type="submit"
+                        class="px-6 py-2 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors font-medium"
+                    >
+                        Add Habit
+                    </button>
+                </div>
+                <input 
+                    type="text" 
+                    id="habitDescription" 
+                    placeholder="Optional description or goal..."
+                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                >
+                <div class="flex items-center space-x-3">
+                    <label for="habitFrequency" class="text-sm font-medium text-gray-700 dark:text-gray-300">How many days per week?</label>
+                    <select 
+                        id="habitFrequency" 
+                        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-gray-700 dark:text-gray-100"
+                    >
+                        <option value="7">Every day (7 days)</option>
+                        <option value="6">6 days a week</option>
+                        <option value="5">5 days a week</option>
+                        <option value="4">4 days a week</option>
+                        <option value="3">3 days a week</option>
+                        <option value="2">2 days a week</option>
+                        <option value="1">Once a week</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        <!-- Habits List -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-light text-gray-800 dark:text-gray-100 mb-4">My Habits</h2>
+            <div id="habitsList" class="space-y-4">
+                <!-- Habits will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Quick Add Habits -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-light text-gray-800 dark:text-gray-100 mb-3">Popular Habits</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <button onclick="habitManager.addQuickHabit('Drink 8 glasses of water', 'Stay hydrated throughout the day', 7)" 
+                        class="p-3 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors text-left">
+                    <div class="font-medium">💧 Drink 8 glasses of water</div>
+                    <div class="text-xs opacity-75">Daily - Stay hydrated</div>
+                </button>
+                <button onclick="habitManager.addQuickHabit('Exercise for 30 minutes', 'Daily physical activity', 5)" 
+                        class="p-3 bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-100 dark:hover:bg-green-800 transition-colors text-left">
+                    <div class="font-medium">🏃‍♂️ Exercise for 30 minutes</div>
+                    <div class="text-xs opacity-75">5x/week - Stay active</div>
+                </button>
+                <button onclick="habitManager.addQuickHabit('Read for 20 minutes', 'Daily reading habit', 6)" 
+                        class="p-3 bg-purple-50 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors text-left">
+                    <div class="font-medium">📚 Read for 20 minutes</div>
+                    <div class="text-xs opacity-75">6x/week - Learn daily</div>
+                </button>
+                <button onclick="habitManager.addQuickHabit('Meditate for 10 minutes', 'Daily mindfulness practice', 7)" 
+                        class="p-3 bg-pink-50 dark:bg-pink-900 text-pink-700 dark:text-pink-300 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-800 transition-colors text-left">
+                    <div class="font-medium">🧘‍♀️ Meditate for 10 minutes</div>
+                    <div class="text-xs opacity-75">Daily - Mindfulness</div>
+                </button>
+                <button onclick="habitManager.addQuickHabit('Take vitamins', 'Daily supplements', 7)" 
+                        class="p-3 bg-yellow-50 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-800 transition-colors text-left">
+                    <div class="font-medium">💊 Take vitamins</div>
+                    <div class="text-xs opacity-75">Daily - Health supplements</div>
+                </button>
+                <button onclick="habitManager.addQuickHabit('Practice gratitude', 'Write 3 things you are grateful for', 4)" 
+                        class="p-3 bg-indigo-50 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors text-left">
+                    <div class="font-medium">🙏 Practice gratitude</div>
+                    <div class="text-xs opacity-75">4x/week - Mental wellness</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class HabitManager {
+            constructor() {
+                this.currentDate = new Date().toISOString().split('T')[0];
+                this.habits = this.loadHabits();
+                this.init();
+            }
+
+            init() {
+                // Initialize dark mode
+                this.initDarkMode();
+                
+                this.renderHabits();
+                this.bindEvents();
+                document.getElementById('habitName').focus();
+            }
+
+            initDarkMode() {
+                const isDarkMode = localStorage.getItem('darkMode') === 'true';
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                }
+            }
+
+            bindEvents() {
+                document.getElementById('backBtn').addEventListener('click', () => {
+                    window.location.href = 'index.html';
+                });
+
+                document.getElementById('habitForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addHabit();
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        window.location.href = 'index.html';
+                    }
+                });
+            }
+
+            addHabit() {
+                const nameInput = document.getElementById('habitName');
+                const descriptionInput = document.getElementById('habitDescription');
+                const frequencyInput = document.getElementById('habitFrequency');
+                
+                const name = nameInput.value.trim();
+                const description = descriptionInput.value.trim();
+                const frequency = parseInt(frequencyInput.value);
+                
+                if (!name) return;
+
+                // Check if habit already exists
+                const exists = this.habits.list.some(habit => habit.name.toLowerCase() === name.toLowerCase());
+                if (exists) {
+                    alert('This habit already exists!');
+                    return;
+                }
+
+                this.habits.list.push({
+                    name: name,
+                    description: description,
+                    frequency: frequency, // Target days per week
+                    createdAt: new Date().toISOString()
+                });
+
+                this.saveHabits();
+                this.renderHabits();
+                
+                nameInput.value = '';
+                descriptionInput.value = '';
+                frequencyInput.value = '7';
+                nameInput.focus();
+            }
+
+            addQuickHabit(name, description, frequency = 7) {
+                // Check if habit already exists
+                const exists = this.habits.list.some(habit => habit.name.toLowerCase() === name.toLowerCase());
+                if (exists) {
+                    alert('This habit already exists!');
+                    return;
+                }
+
+                this.habits.list.push({
+                    name: name,
+                    description: description,
+                    frequency: frequency,
+                    createdAt: new Date().toISOString()
+                });
+
+                this.saveHabits();
+                this.renderHabits();
+            }
+
+            toggleHabit(index) {
+                if (!this.habits.tracking) this.habits.tracking = {};
+                if (!this.habits.tracking[this.currentDate]) this.habits.tracking[this.currentDate] = {};
+                
+                this.habits.tracking[this.currentDate][index] = !this.habits.tracking[this.currentDate][index];
+                this.saveHabits();
+                this.renderHabits();
+            }
+
+            deleteHabit(index) {
+                if (confirm('Are you sure you want to delete this habit? All tracking data will be lost.')) {
+                    this.habits.list.splice(index, 1);
+                    
+                    // Clean up tracking data
+                    Object.keys(this.habits.tracking).forEach(date => {
+                        delete this.habits.tracking[date][index];
+                        // Reindex remaining habits
+                        const updatedTracking = {};
+                        Object.keys(this.habits.tracking[date]).forEach(oldIndex => {
+                            const newIndex = oldIndex > index ? oldIndex - 1 : oldIndex;
+                            if (newIndex >= 0) {
+                                updatedTracking[newIndex] = this.habits.tracking[date][oldIndex];
+                            }
+                        });
+                        this.habits.tracking[date] = updatedTracking;
+                    });
+
+                    this.saveHabits();
+                    this.renderHabits();
+                }
+            }
+
+            calculateWeeklyCompletionRate(habitIndex) {
+                const habit = this.habits.list[habitIndex];
+                if (!habit) return 0;
+
+                const today = new Date();
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
+
+                let completedThisWeek = 0;
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(weekStart);
+                    date.setDate(weekStart.getDate() + i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    
+                    if (this.habits.tracking?.[dateStr]?.[habitIndex]) {
+                        completedThisWeek++;
+                    }
+                }
+
+                return ((completedThisWeek / habit.frequency) * 100).toFixed(1);
+            }
+
+            calculateOverallCompletionRate(habitIndex) {
+                const habit = this.habits.list[habitIndex];
+                if (!habit) return 0;
+
+                const createdDate = new Date(habit.createdAt);
+                const today = new Date();
+                const totalWeeks = Math.ceil((today - createdDate) / (7 * 24 * 60 * 60 * 1000));
+
+                if (totalWeeks === 0) return 0;
+
+                let totalExpected = 0;
+                let totalCompleted = 0;
+
+                // Calculate for each week since creation
+                for (let week = 0; week < totalWeeks; week++) {
+                    const weekStart = new Date(createdDate);
+                    weekStart.setDate(createdDate.getDate() + (week * 7));
+                    
+                    let weekCompleted = 0;
+                    for (let day = 0; day < 7; day++) {
+                        const date = new Date(weekStart);
+                        date.setDate(weekStart.getDate() + day);
+                        
+                        // Don't count future dates
+                        if (date > today) break;
+                        
+                        const dateStr = date.toISOString().split('T')[0];
+                        if (this.habits.tracking?.[dateStr]?.[habitIndex]) {
+                            weekCompleted++;
+                        }
+                    }
+                    
+                    totalCompleted += weekCompleted;
+                    totalExpected += habit.frequency;
+                }
+
+                return totalExpected > 0 ? ((totalCompleted / totalExpected) * 100).toFixed(1) : 0;
+            }
+
+            renderHabits() {
+                const habitsList = document.getElementById('habitsList');
+                const habits = this.habits.list || [];
+
+                if (habits.length === 0) {
+                    habitsList.innerHTML = `
+                        <div class="text-center py-8 text-gray-500">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p>No habits yet</p>
+                            <p class="text-sm">Add your first habit above or choose from popular habits below!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                habitsList.innerHTML = habits.map((habit, index) => {
+                    const todayCompleted = this.habits.tracking?.[this.currentDate]?.[index] || false;
+                    const streak = this.calculateStreak(index);
+                    const frequencyText = habit.frequency === 7 ? 'Daily' : `${habit.frequency}x/week`;
+                    
+                    return `
+                        <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3">
+                                        <button 
+                                            onclick="habitManager.toggleHabit(${index})"
+                                            class="w-8 h-8 rounded-full ${todayCompleted ? 'bg-orange-500' : 'bg-gray-300'} 
+                                                   text-white text-sm flex items-center justify-center hover:scale-105 transition-transform"
+                                        >
+                                            ${todayCompleted ? '✓' : ''}
+                                        </button>
+                                        <div>
+                                            <div class="font-medium text-gray-800">${habit.name}</div>
+                                            <div class="text-sm text-gray-600">
+                                                ${habit.description || ''} 
+                                                <span class="text-orange-600 font-medium">${frequencyText}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-right">
+                                        <div class="text-sm font-medium text-orange-600">${streak} day streak</div>
+                                        <div class="text-xs text-gray-500">Current streak</div>
+                                    </div>
+                                    <button 
+                                        onclick="habitManager.deleteHabit(${index})"
+                                        class="text-red-500 hover:text-red-700 transition-colors"
+                                        title="Delete habit"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Weekly progress -->
+                            <div class="mt-3 flex justify-between items-center">
+                                <div class="flex space-x-1">
+                                    ${this.renderWeeklyProgress(index)}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Target: ${habit.frequency === 7 ? 'Every day' : habit.frequency + ' days/week'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderWeeklyProgress(habitIndex) {
+                const days = [];
+                const today = new Date();
+                
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    const completed = this.habits.tracking?.[dateStr]?.[habitIndex] || false;
+                    const isToday = dateStr === this.currentDate;
+                    
+                    days.push(`
+                        <div class="w-6 h-6 rounded ${completed ? 'bg-orange-500' : 'bg-gray-200'} 
+                                    ${isToday ? 'ring-2 ring-orange-300' : ''}" 
+                             title="${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}">
+                        </div>
+                    `);
+                }
+                
+                return days.join('');
+            }
+
+            calculateStreak(habitIndex) {
+                let streak = 0;
+                const today = new Date();
+                
+                // Start from today and go backwards
+                for (let i = 0; i < 365; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    
+                    if (this.habits.tracking?.[dateStr]?.[habitIndex]) {
+                        streak++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                return streak;
+            }
+
+            saveHabits() {
+                localStorage.setItem('journalHabits', JSON.stringify(this.habits));
+            }
+
+            loadHabits() {
+                const stored = localStorage.getItem('journalHabits');
+                const data = stored ? JSON.parse(stored) : { list: [], tracking: {} };
+                
+                // Migrate old habits without frequency to daily habits
+                if (data.list) {
+                    data.list.forEach(habit => {
+                        if (!habit.frequency) {
+                            habit.frequency = 7; // Default to daily
+                        }
+                    });
+                }
+                
+                return data;
+            }
+        }
+
+        const habitManager = new HabitManager();
+    </script>
+</body>
+</html> 

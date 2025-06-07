@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journal Entry - My Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        .recording {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <button id="backBtn" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Home
+            </button>
+            <div class="text-center">
+                <h1 class="text-3xl font-light text-gray-800 dark:text-gray-100">Journal Entry</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm" id="entryDate"></p>
+            </div>
+            <div class="w-32"></div>
+        </div>
+
+        <!-- Mood Display (if available) -->
+        <div id="moodDisplay" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6 hidden">
+            <div class="flex items-center justify-center space-x-3">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Today's mood:</span>
+                <span id="todayMoodEmoji" class="text-2xl"></span>
+                <span id="todayMoodText" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
+            </div>
+        </div>
+
+        <!-- Journal Entry Form -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <form id="entryForm" class="space-y-6">
+                <!-- Summary Input -->
+                <div>
+                    <label for="entrySummary" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        One-line summary (Optional)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="entrySummary" 
+                        placeholder="What happened today in one sentence..."
+                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                    >
+                </div>
+
+                <!-- Main Content Area -->
+                <div>
+                    <label for="entryContent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Your thoughts and reflections
+                    </label>
+                    <textarea 
+                        id="entryContent" 
+                        rows="15" 
+                        placeholder="Start writing your journal entry here..."
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                        required
+                    ></textarea>
+                </div>
+
+                <!-- 💬 Talk to me Section -->
+                <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4 flex items-center">
+                        💬 Talk to me
+                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400 font-normal">Voice Assistant (30+ languages)</span>
+                    </h3>
+                    
+                    <!-- Language Selection -->
+                    <div class="mb-4">
+                        <label for="languageSelect" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Select your language:
+                        </label>
+                        <select id="languageSelect" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100">
+                            <option value="en">English</option>
+                            <option value="es">Spanish (Español)</option>
+                            <option value="fr">French (Français)</option>
+                            <option value="de">German (Deutsch)</option>
+                            <option value="it">Italian (Italiano)</option>
+                            <option value="pt">Portuguese (Português)</option>
+                            <option value="ru">Russian (Русский)</option>
+                            <option value="ar">Arabic (العربية)</option>
+                            <option value="zh">Chinese (中文)</option>
+                            <option value="ja">Japanese (日本語)</option>
+                            <option value="ko">Korean (한국어)</option>
+                            <option value="hi">Hindi (हिन्दी)</option>
+                            <option value="bn">Bengali (বাংলা)</option>
+                            <option value="te">Telugu (తెలుగు)</option>
+                            <option value="mr">Marathi (मराठी)</option>
+                            <option value="ta">Tamil (தமிழ்)</option>
+                            <option value="gu">Gujarati (ગુજરાતી)</option>
+                            <option value="ur">Urdu (اردو)</option>
+                            <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                            <option value="or">Odia (ଓଡ଼ିଆ)</option>
+                            <option value="ml">Malayalam (മലയാളം)</option>
+                            <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                            <option value="as">Assamese (অসমীয়া)</option>
+                            <option value="mai">Maithili (मैथिली)</option>
+                            <option value="sat">Santali (संताली)</option>
+                            <option value="ks">Kashmiri (कश्मीरी)</option>
+                            <option value="ne">Nepali (नेपाली)</option>
+                            <option value="sd">Sindhi (سنڌي)</option>
+                            <option value="kok">Konkani (कोंकणी)</option>
+                            <option value="mni">Manipuri (মণিপুরী)</option>
+                            <option value="brx">Bodo (बोड़ो)</option>
+                        </select>
+                    </div>
+
+                    <!-- Voice Recording Controls -->
+                    <div class="flex items-center space-x-4 mb-4">
+                        <button type="button" id="recordBtn" class="px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                            </svg>
+                            <span id="recordBtnText">Start Recording</span>
+                        </button>
+                        
+                        <div id="recordingStatus" class="text-sm text-gray-600 dark:text-gray-400 hidden">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                <span>Recording... <span id="recordingTime">0:00</span></span>
+                            </div>
+                        </div>
+                        
+                        <div id="processingStatus" class="text-sm text-blue-600 dark:text-blue-400 hidden">
+                            <div class="flex items-center space-x-2">
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                                <span>Processing with AI...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Instructions -->
+                    <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                        <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">How it works:</h4>
+                        <ul class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                            <li>• Speak in any of the 30+ supported languages</li>
+                            <li>• AI will transcribe, translate to English, and add it to your journal</li>
+                            <li>• Includes sentiment analysis and a one-line summary</li>
+                            <li>• Multiple voice entries will be separated automatically</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-4">
+                    <button 
+                        type="submit" 
+                        class="flex-1 bg-blue-600 dark:bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium"
+                    >
+                        Save Entry
+                    </button>
+                    <button 
+                        type="button" 
+                        id="deleteBtn" 
+                        class="px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium hidden"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Writing Tips -->
+        <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Writing Tips</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div>
+                    <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-1">Reflect on your day</h4>
+                    <p>What went well? What challenges did you face?</p>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-1">Express your emotions</h4>
+                    <p>How are you feeling? What emotions came up?</p>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-1">Use voice assistant</h4>
+                    <p>Speak naturally in your preferred language for easy journaling</p>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-1">Be honest</h4>
+                    <p>This is your safe space - write authentically</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class JournalEntry {
+            constructor() {
+                this.currentDate = this.getDateFromURL() || new Date().toISOString().split('T')[0];
+                this.entries = this.loadEntries();
+                this.moods = this.loadMoods();
+                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Happy', 'Content', 'Excited'];
+                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😄', '😌', '🤩'];
+                this.autoSaveTimer = null;
+                this.isRecording = false;
+                this.mediaRecorder = null;
+                this.audioChunks = [];
+                this.recordingTimer = null;
+                this.recordingStartTime = null;
+                // WARNING: In production, use environment variables or backend API
+                this.GEMINI_API_KEY = 'AIzaSyC_ZRimxlh9GdFO5RdfKh0CBkC57Esr5NI';
+                this.init();
+            }
+
+            init() {
+                // Initialize dark mode
+                this.initDarkMode();
+                
+                this.setupDateDisplay();
+                this.loadExistingEntry();
+                this.displayMood();
+                this.bindEvents();
+                this.setupVoiceRecording();
+                document.getElementById('entryContent').focus();
+            }
+
+            initDarkMode() {
+                const isDarkMode = localStorage.getItem('darkMode') === 'true';
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                }
+            }
+
+            setupDateDisplay() {
+                const date = new Date(this.currentDate);
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                };
+                document.getElementById('entryDate').textContent = date.toLocaleDateString('en-US', options);
+            }
+
+            getDateFromURL() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('date');
+            }
+
+            loadExistingEntry() {
+                const existingEntry = this.entries[this.currentDate];
+                if (existingEntry) {
+                    const lines = existingEntry.split('\n');
+                    const summary = lines[0].startsWith('**Summary:**') ? lines[0].replace('**Summary:** ', '') : '';
+                    const content = lines.slice(summary ? 2 : 0).join('\n'); // Skip summary and empty line if present
+                    
+                    document.getElementById('entrySummary').value = summary;
+                    document.getElementById('entryContent').value = content;
+                    document.getElementById('deleteBtn').classList.remove('hidden');
+                }
+            }
+
+            displayMood() {
+                const todaysMood = this.moods[this.currentDate];
+                if (todaysMood !== undefined) {
+                    document.getElementById('moodDisplay').classList.remove('hidden');
+                    document.getElementById('todayMoodEmoji').textContent = this.moodEmojis[todaysMood];
+                    document.getElementById('todayMoodText').textContent = this.moodLabels[todaysMood];
+                }
+            }
+
+            bindEvents() {
+                document.getElementById('backBtn').addEventListener('click', () => {
+                    window.location.href = 'index.html';
+                });
+
+                document.getElementById('entryForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveEntry();
+                });
+
+                document.getElementById('deleteBtn').addEventListener('click', () => {
+                    this.deleteEntry();
+                });
+
+                // Auto-save draft
+                let autoSaveTimeout;
+                const autoSave = () => {
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(() => {
+                        this.saveDraft();
+                    }, 2000);
+                };
+
+                document.getElementById('entryContent').addEventListener('input', autoSave);
+                document.getElementById('entrySummary').addEventListener('input', autoSave);
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        window.location.href = 'index.html';
+                    }
+                    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                        e.preventDefault();
+                        this.saveEntry();
+                    }
+                });
+            }
+
+            setupVoiceRecording() {
+                const recordBtn = document.getElementById('recordBtn');
+                
+                recordBtn.addEventListener('click', () => {
+                    if (this.isRecording) {
+                        this.stopRecording();
+                    } else {
+                        this.startRecording();
+                    }
+                });
+            }
+
+            async startRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    const audioChunks = [];
+
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    this.mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        await this.processAudioWithGemini(audioBlob);
+                        
+                        // Stop all tracks to release microphone
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    this.mediaRecorder.start();
+                    this.isRecording = true;
+                    this.updateRecordingUI();
+                    this.startRecordingTimer();
+
+                } catch (error) {
+                    console.error('Error starting recording:', error);
+                    alert('Could not access microphone. Please check permissions.');
+                }
+            }
+
+            stopRecording() {
+                if (this.mediaRecorder && this.isRecording) {
+                    this.mediaRecorder.stop();
+                    this.isRecording = false;
+                    this.updateRecordingUI();
+                    this.stopRecordingTimer();
+                }
+            }
+
+            startRecordingTimer() {
+                this.recordingStartTime = Date.now();
+                this.recordingTimer = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - this.recordingStartTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    document.getElementById('recordingTime').textContent = 
+                        `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+
+            stopRecordingTimer() {
+                if (this.recordingTimer) {
+                    clearInterval(this.recordingTimer);
+                    this.recordingTimer = null;
+                }
+            }
+
+            updateRecordingUI() {
+                const recordBtn = document.getElementById('recordBtn');
+                const recordBtnText = document.getElementById('recordBtnText');
+                const recordingStatus = document.getElementById('recordingStatus');
+
+                if (this.isRecording) {
+                    recordBtn.className = 'px-6 py-3 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors font-medium flex items-center space-x-2';
+                    recordBtnText.textContent = 'Stop Recording';
+                    recordingStatus.classList.remove('hidden');
+                } else {
+                    recordBtn.className = 'px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center space-x-2';
+                    recordBtnText.textContent = 'Start Recording';
+                    recordingStatus.classList.add('hidden');
+                }
+            }
+
+            async processAudioWithGemini(audioBlob) {
+                const processingStatus = document.getElementById('processingStatus');
+                processingStatus.classList.remove('hidden');
+
+                try {
+                    // Convert audio blob to base64
+                    const base64Audio = await this.blobToBase64(audioBlob);
+                    const selectedLanguage = document.getElementById('languageSelect').value;
+                    
+                    // Language code to name mapping for better prompts
+                    const languageNames = {
+                        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German', 'it': 'Italian',
+                        'pt': 'Portuguese', 'ru': 'Russian', 'ar': 'Arabic', 'zh': 'Chinese', 'ja': 'Japanese',
+                        'ko': 'Korean', 'hi': 'Hindi', 'bn': 'Bengali', 'te': 'Telugu', 'mr': 'Marathi',
+                        'ta': 'Tamil', 'gu': 'Gujarati', 'ur': 'Urdu', 'kn': 'Kannada', 'or': 'Odia',
+                        'ml': 'Malayalam', 'pa': 'Punjabi', 'as': 'Assamese', 'mai': 'Maithili',
+                        'sat': 'Santali', 'ks': 'Kashmiri', 'ne': 'Nepali', 'sd': 'Sindhi',
+                        'kok': 'Konkani', 'mni': 'Manipuri', 'brx': 'Bodo'
+                    };
+
+                    const languageName = languageNames[selectedLanguage] || 'English';
+
+                    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyC8dS2r1kLiYlnBVhYhPi1sNSCTFhMJFI8', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    {
+                                        text: `You are a multilingual voice assistant for a personal journal app. The user has recorded audio in ${languageName}. Please:
+
+1. Transcribe the audio accurately in the original language
+2. If the language is not English, translate it to English (if already English, skip this step)
+3. Analyze the sentiment (Happy, Sad, Anxious, Excited, Neutral, etc.)
+4. Create a one-line summary of the main theme
+
+Please format your response as:
+**Transcription (${languageName}):** [original transcription]
+**English Translation:** [English translation - only if not already English]
+**Sentiment:** [sentiment analysis]
+**Summary:** [one-line summary]
+**Journal Entry:** [well-formatted English journal entry ready for personal journaling]
+
+Be empathetic and supportive in your responses. Make the journal entry personal and reflective.`
+                                    },
+                                    {
+                                        inline_data: {
+                                            mime_type: 'audio/wav',
+                                            data: base64Audio.split(',')[1]
+                                        }
+                                    }
+                                ]
+                            }],
+                            generationConfig: {
+                                temperature: 0.7,
+                                maxOutputTokens: 1000,
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const aiResponse = data.candidates[0].content.parts[0].text;
+                    
+                    // Add the AI response to the journal entry
+                    this.addVoiceContentToEntry(aiResponse);
+
+                } catch (error) {
+                    console.error('Error processing audio with Gemini:', error);
+                    alert('Error processing audio. Please try again.');
+                } finally {
+                    processingStatus.classList.add('hidden');
+                }
+            }
+
+            addVoiceContentToEntry(aiResponse) {
+                const entryContent = document.getElementById('entryContent');
+                const currentContent = entryContent.value;
+                
+                // Add separator if there's existing content
+                const separator = currentContent.trim() ? '\n\n---\n\n' : '';
+                const newContent = currentContent + separator + aiResponse + '\n\n';
+                
+                entryContent.value = newContent;
+                
+                // Auto-focus at the end
+                entryContent.focus();
+                entryContent.setSelectionRange(entryContent.value.length, entryContent.value.length);
+                
+                // Trigger auto-save
+                entryContent.dispatchEvent(new Event('input'));
+            }
+
+            blobToBase64(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
+
+            saveEntry() {
+                const summary = document.getElementById('entrySummary').value.trim();
+                const content = document.getElementById('entryContent').value.trim();
+
+                if (!content) {
+                    alert('Please write something in your journal entry.');
+                    return;
+                }
+
+                let finalEntry = '';
+                if (summary) {
+                    finalEntry = `**Summary:** ${summary}\n\n${content}`;
+                } else {
+                    finalEntry = content;
+                }
+
+                this.entries[this.currentDate] = finalEntry;
+                this.saveEntries();
+
+                // Remove any draft
+                this.removeDraft();
+
+                // Show success message and redirect
+                alert('Journal entry saved successfully!');
+                window.location.href = 'index.html';
+            }
+
+            saveDraft() {
+                const summary = document.getElementById('entrySummary').value.trim();
+                const content = document.getElementById('entryContent').value.trim();
+
+                if (content || summary) {
+                    const draft = { summary, content, date: this.currentDate };
+                    localStorage.setItem('journalDraft', JSON.stringify(draft));
+                }
+            }
+
+            removeDraft() {
+                localStorage.removeItem('journalDraft');
+            }
+
+            deleteEntry() {
+                if (confirm('Are you sure you want to delete this journal entry? This action cannot be undone.')) {
+                    delete this.entries[this.currentDate];
+                    this.saveEntries();
+                    this.removeDraft();
+                    window.location.href = 'index.html';
+                }
+            }
+
+            loadEntries() {
+                const stored = localStorage.getItem('journalEntries');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            loadMoods() {
+                const stored = localStorage.getItem('journalMoods');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            saveEntries() {
+                localStorage.setItem('journalEntries', JSON.stringify(this.entries));
+            }
+        }
+
+        const journalEntry = new JournalEntry();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - My Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        .passcode-input {
+            width: 3rem;
+            height: 3rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .passcode-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 min-h-screen flex items-center justify-center transition-colors">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-md relative">
+        <!-- Dark Mode Toggle -->
+        <button id="darkModeToggle" class="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            <svg id="darkModeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Sun icon (light mode) -->
+                <path id="sunIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" class="hidden dark:block"></path>
+                <!-- Moon icon (dark mode) -->
+                <path id="moonIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" class="block dark:hidden"></path>
+            </svg>
+        </button>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-light text-gray-800 dark:text-gray-100 mb-2">My Journal</h1>
+            <p class="text-gray-600 dark:text-gray-400">Welcome back! Please authenticate to continue.</p>
+        </div>
+
+        <!-- Authentication Type Toggle -->
+        <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 mb-6">
+            <button id="passwordToggle" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm">
+                Password
+            </button>
+            <button id="passcodeToggle" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+                Passcode
+            </button>
+        </div>
+
+        <!-- Password Form -->
+        <div id="passwordForm" class="space-y-6">
+            <form id="userForm" class="space-y-4">
+                <div>
+                    <label for="userName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Name</label>
+                    <input 
+                        type="text" 
+                        id="userName" 
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                        placeholder="Enter your name"
+                        required
+                    >
+                </div>
+                <div>
+                    <label for="userPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="userPassword" 
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 pr-12"
+                            placeholder="Enter your password"
+                            required
+                        >
+                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                            <svg id="eyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <svg id="eyeClosed" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum 6 characters</div>
+                </div>
+                <button 
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium"
+                >
+                    Continue with Password
+                </button>
+            </form>
+        </div>
+
+        <!-- Passcode Form -->
+        <div id="passcodeForm" class="space-y-6 hidden">
+            <form id="passcodeUserForm" class="space-y-4">
+                <div>
+                    <label for="passcodeUserName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Name</label>
+                    <input 
+                        type="text" 
+                        id="passcodeUserName" 
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                        placeholder="Enter your name"
+                        required
+                    >
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Set your 4-digit passcode</label>
+                    <div class="flex space-x-3 justify-center mb-4" id="passcodeInputs">
+                        <input type="password" maxlength="1" class="passcode-input border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100" data-index="0">
+                        <input type="password" maxlength="1" class="passcode-input border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100" data-index="1">
+                        <input type="password" maxlength="1" class="passcode-input border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100" data-index="2">
+                        <input type="password" maxlength="1" class="passcode-input border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100" data-index="3">
+                    </div>
+                    <div class="flex space-x-3 justify-center mb-4" id="passcodeDots">
+                        <div class="passcode-dot bg-gray-300 dark:bg-gray-600"></div>
+                        <div class="passcode-dot bg-gray-300 dark:bg-gray-600"></div>
+                        <div class="passcode-dot bg-gray-300 dark:bg-gray-600"></div>
+                        <div class="passcode-dot bg-gray-300 dark:bg-gray-600"></div>
+                    </div>
+                </div>
+                <button 
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium"
+                >
+                    Continue with Passcode
+                </button>
+            </form>
+        </div>
+
+        <!-- Login Form (for returning users) -->
+        <div id="loginForm" class="space-y-6 hidden">
+            <div class="text-center mb-4">
+                <h2 class="text-xl font-medium text-gray-800 dark:text-gray-100">Welcome back, <span id="returningUserName" class="text-blue-600 dark:text-blue-400"></span>!</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Please enter your <span id="authMethodText">password</span> to continue</p>
+            </div>
+
+            <!-- Password Login -->
+            <div id="passwordLogin" class="hidden">
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        id="loginPassword" 
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 pr-12"
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <button type="button" id="toggleLoginPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                        <svg id="loginEyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <svg id="loginEyeClosed" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Passcode Login -->
+            <div id="passcodeLogin" class="hidden">
+                <div class="flex space-x-3 justify-center mb-4" id="loginPasscodeInputs">
+                    <input type="password" maxlength="1" class="passcode-input border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100" data-index="0">
+                    <input type="password" maxlength="1" class="passcode-input border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100" data-index="1">
+                    <input type="password" maxlength="1" class="passcode-input border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100" data-index="2">
+                    <input type="password" maxlength="1" class="passcode-input border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100" data-index="3">
+                </div>
+                <div class="flex space-x-3 justify-center mb-4" id="loginPasscodeDots">
+                    <div class="passcode-dot bg-gray-300 dark:bg-gray-600"></div>
+                    <div class="passcode-dot bg-gray-300 dark:bg-gray-600"></div>
+                    <div class="passcode-dot bg-gray-300 dark:bg-gray-600"></div>
+                    <div class="passcode-dot bg-gray-300 dark:bg-gray-600"></div>
+                </div>
+            </div>
+
+            <button 
+                id="loginButton"
+                class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium"
+            >
+                Sign In
+            </button>
+
+            <div class="text-center">
+                <button id="newUserBtn" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline">
+                    Not you? Create new account
+                </button>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="hidden mt-4 p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
+            <p class="text-sm text-red-600 dark:text-red-300 text-center"></p>
+        </div>
+    </div>
+
+    <script>
+        class LoginApp {
+            constructor() {
+                this.userProfile = this.loadUserProfile();
+                this.authType = 'password'; // 'password' or 'passcode'
+                this.init();
+            }
+
+            init() {
+                this.initDarkMode();
+                this.setupAuthToggle();
+                this.setupPasswordVisibility();
+                this.setupPasscodeInputs();
+                this.bindEvents();
+                
+                // Check if user exists
+                if (this.userProfile) {
+                    this.showLoginForm();
+                } else {
+                    this.showSetupForm();
+                }
+            }
+
+            initDarkMode() {
+                // Load dark mode preference
+                const isDarkMode = localStorage.getItem('darkMode') === 'true';
+                
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                
+                this.updateDarkModeIcon();
+            }
+
+            toggleDarkMode() {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                
+                if (isDarkMode) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('darkMode', 'false');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('darkMode', 'true');
+                }
+                
+                this.updateDarkModeIcon();
+            }
+
+            updateDarkModeIcon() {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                const sunIcon = document.getElementById('sunIcon');
+                const moonIcon = document.getElementById('moonIcon');
+                
+                if (isDarkMode) {
+                    sunIcon.classList.remove('hidden');
+                    sunIcon.classList.add('block');
+                    moonIcon.classList.remove('block');
+                    moonIcon.classList.add('hidden');
+                } else {
+                    sunIcon.classList.remove('block');
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                    moonIcon.classList.add('block');
+                }
+            }
+
+            setupAuthToggle() {
+                const passwordToggle = document.getElementById('passwordToggle');
+                const passcodeToggle = document.getElementById('passcodeToggle');
+
+                passwordToggle.addEventListener('click', () => {
+                    this.authType = 'password';
+                    this.updateAuthToggle();
+                });
+
+                passcodeToggle.addEventListener('click', () => {
+                    this.authType = 'passcode';
+                    this.updateAuthToggle();
+                });
+            }
+
+            updateAuthToggle() {
+                const passwordToggle = document.getElementById('passwordToggle');
+                const passcodeToggle = document.getElementById('passcodeToggle');
+                const passwordForm = document.getElementById('passwordForm');
+                const passcodeForm = document.getElementById('passcodeForm');
+
+                if (this.authType === 'password') {
+                    passwordToggle.className = 'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm';
+                    passcodeToggle.className = 'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100';
+                    passwordForm.classList.remove('hidden');
+                    passcodeForm.classList.add('hidden');
+                } else {
+                    passwordToggle.className = 'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100';
+                    passcodeToggle.className = 'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm';
+                    passwordForm.classList.add('hidden');
+                    passcodeForm.classList.remove('hidden');
+                    
+                    // Focus first passcode input
+                    setTimeout(() => {
+                        document.querySelector('#passcodeInputs input').focus();
+                    }, 100);
+                }
+            }
+
+            setupPasswordVisibility() {
+                const toggleBtns = ['togglePassword', 'toggleLoginPassword'];
+                
+                toggleBtns.forEach(btnId => {
+                    const btn = document.getElementById(btnId);
+                    if (btn) {
+                        btn.addEventListener('click', () => {
+                            const isLogin = btnId.includes('Login');
+                            const input = document.getElementById(isLogin ? 'loginPassword' : 'userPassword');
+                            const eyeOpen = document.getElementById(isLogin ? 'loginEyeOpen' : 'eyeOpen');
+                            const eyeClosed = document.getElementById(isLogin ? 'loginEyeClosed' : 'eyeClosed');
+                            
+                            if (input.type === 'password') {
+                                input.type = 'text';
+                                eyeOpen.classList.add('hidden');
+                                eyeClosed.classList.remove('hidden');
+                            } else {
+                                input.type = 'password';
+                                eyeOpen.classList.remove('hidden');
+                                eyeClosed.classList.add('hidden');
+                            }
+                        });
+                    }
+                });
+            }
+
+            setupPasscodeInputs() {
+                const setupPasscodeContainer = (containerId, dotsId) => {
+                    const inputs = document.querySelectorAll(`#${containerId} input`);
+                    const dots = document.querySelectorAll(`#${dotsId} .passcode-dot`);
+
+                    inputs.forEach((input, index) => {
+                        input.addEventListener('input', (e) => {
+                            const value = e.target.value;
+                            if (value && /^\d$/.test(value)) {
+                                dots[index].classList.remove('bg-gray-300', 'dark:bg-gray-600');
+                                dots[index].classList.add('bg-blue-500');
+                                
+                                // Move to next input
+                                if (index < inputs.length - 1) {
+                                    inputs[index + 1].focus();
+                                }
+                                
+                                // Check if all inputs are filled for login
+                                if (containerId === 'loginPasscodeInputs') {
+                                    const allFilled = Array.from(inputs).every(inp => inp.value);
+                                    if (allFilled) {
+                                        this.handlePasscodeLogin();
+                                    }
+                                }
+                            } else if (!value) {
+                                dots[index].classList.remove('bg-blue-500');
+                                dots[index].classList.add('bg-gray-300', 'dark:bg-gray-600');
+                            }
+                        });
+
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Backspace' && !input.value && index > 0) {
+                                inputs[index - 1].focus();
+                                inputs[index - 1].value = '';
+                                dots[index - 1].classList.remove('bg-blue-500');
+                                dots[index - 1].classList.add('bg-gray-300', 'dark:bg-gray-600');
+                            }
+                        });
+                    });
+                };
+
+                setupPasscodeContainer('passcodeInputs', 'passcodeDots');
+                setupPasscodeContainer('loginPasscodeInputs', 'loginPasscodeDots');
+            }
+
+            showSetupForm() {
+                document.getElementById('passwordForm').classList.remove('hidden');
+                document.getElementById('passcodeForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.add('hidden');
+                document.querySelector('.flex.bg-gray-100').classList.remove('hidden');
+            }
+
+            showLoginForm() {
+                document.getElementById('passwordForm').classList.add('hidden');
+                document.getElementById('passcodeForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.querySelector('.flex.bg-gray-100').classList.add('hidden');
+                
+                document.getElementById('returningUserName').textContent = this.userProfile.name;
+                document.getElementById('authMethodText').textContent = this.userProfile.authType === 'password' ? 'password' : 'passcode';
+                
+                if (this.userProfile.authType === 'password') {
+                    document.getElementById('passwordLogin').classList.remove('hidden');
+                    document.getElementById('passcodeLogin').classList.add('hidden');
+                    document.getElementById('loginPassword').focus();
+                } else {
+                    document.getElementById('passwordLogin').classList.add('hidden');
+                    document.getElementById('passcodeLogin').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.querySelector('#loginPasscodeInputs input').focus();
+                    }, 100);
+                }
+            }
+
+            bindEvents() {
+                document.getElementById('darkModeToggle').addEventListener('click', () => {
+                    this.toggleDarkMode();
+                });
+
+                document.getElementById('userForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handlePasswordSetup();
+                });
+
+                document.getElementById('passcodeUserForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handlePasscodeSetup();
+                });
+
+                document.getElementById('loginButton').addEventListener('click', () => {
+                    if (this.userProfile.authType === 'password') {
+                        this.handlePasswordLogin();
+                    } else {
+                        this.handlePasscodeLogin();
+                    }
+                });
+
+                document.getElementById('newUserBtn').addEventListener('click', () => {
+                    if (confirm('This will delete your current account. Are you sure?')) {
+                        localStorage.removeItem('userProfile');
+                        this.userProfile = null;
+                        this.showSetupForm();
+                        this.hideError();
+                    }
+                });
+
+                // Enter key for password login
+                document.getElementById('loginPassword')?.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handlePasswordLogin();
+                    }
+                });
+            }
+
+            handlePasswordSetup() {
+                const name = document.getElementById('userName').value.trim();
+                const password = document.getElementById('userPassword').value;
+
+                if (!name || !password) {
+                    this.showError('Please fill in all fields');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    this.showError('Password must be at least 6 characters long');
+                    return;
+                }
+
+                const userProfile = {
+                    name: name,
+                    authType: 'password',
+                    password: this.hashPassword(password),
+                    createdAt: new Date().toISOString()
+                };
+
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                this.redirectToApp();
+            }
+
+            handlePasscodeSetup() {
+                const name = document.getElementById('passcodeUserName').value.trim();
+                const inputs = document.querySelectorAll('#passcodeInputs input');
+                const passcode = Array.from(inputs).map(input => input.value).join('');
+
+                if (!name) {
+                    this.showError('Please enter your name');
+                    return;
+                }
+
+                if (passcode.length !== 4 || !/^\d{4}$/.test(passcode)) {
+                    this.showError('Please enter a 4-digit passcode');
+                    return;
+                }
+
+                const userProfile = {
+                    name: name,
+                    authType: 'passcode',
+                    passcode: this.hashPassword(passcode),
+                    createdAt: new Date().toISOString()
+                };
+
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                this.redirectToApp();
+            }
+
+            handlePasswordLogin() {
+                const password = document.getElementById('loginPassword').value;
+                
+                if (!password) {
+                    this.showError('Please enter your password');
+                    return;
+                }
+
+                if (this.hashPassword(password) === this.userProfile.password) {
+                    this.redirectToApp();
+                } else {
+                    this.showError('Incorrect password');
+                    document.getElementById('loginPassword').value = '';
+                    document.getElementById('loginPassword').focus();
+                }
+            }
+
+            handlePasscodeLogin() {
+                const inputs = document.querySelectorAll('#loginPasscodeInputs input');
+                const passcode = Array.from(inputs).map(input => input.value).join('');
+
+                if (passcode.length !== 4) {
+                    return; // Wait for all digits
+                }
+
+                if (this.hashPassword(passcode) === this.userProfile.passcode) {
+                    this.redirectToApp();
+                } else {
+                    this.showError('Incorrect passcode');
+                    // Clear inputs
+                    inputs.forEach((input, index) => {
+                        input.value = '';
+                        const dots = document.querySelectorAll('#loginPasscodeDots .passcode-dot');
+                        dots[index].classList.remove('bg-blue-500');
+                        dots[index].classList.add('bg-gray-300', 'dark:bg-gray-600');
+                    });
+                    inputs[0].focus();
+                }
+            }
+
+            hashPassword(input) {
+                // Simple hash for demo - use proper hashing in production
+                let hash = 0;
+                for (let i = 0; i < input.length; i++) {
+                    const char = input.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32-bit integer
+                }
+                return hash.toString();
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                const errorText = errorDiv.querySelector('p');
+                errorText.textContent = message;
+                errorDiv.classList.remove('hidden');
+                
+                // Hide error after 5 seconds
+                setTimeout(() => {
+                    this.hideError();
+                }, 5000);
+            }
+
+            hideError() {
+                document.getElementById('errorMessage').classList.add('hidden');
+            }
+
+            redirectToApp() {
+                window.location.href = 'index.html';
+            }
+
+            loadUserProfile() {
+                const stored = localStorage.getItem('userProfile');
+                return stored ? JSON.parse(stored) : null;
+            }
+        }
+
+        const loginApp = new LoginApp();
+    </script>
+</body>
+</html> 

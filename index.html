@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        .mood-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ef4444, #f97316, #eab308, #84cc16, #22c55e, #06b6d4, #8b5cf6);
+            outline: none;
+        }
+        .mood-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 3px solid #374151;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .mood-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 3px solid #374151;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .mood-emoji {
+            font-size: 2rem;
+            transition: transform 0.2s;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+        }
+        .mood-emoji.active {
+            transform: scale(1.3);
+            filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.3));
+        }
+        .dark .mood-slider::-webkit-slider-thumb {
+            border: 3px solid #e5e7eb;
+        }
+        .dark .mood-slider::-moz-range-thumb {
+            border: 3px solid #e5e7eb;
+        }
+        .glass-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .dark .glass-card {
+            background: rgba(31, 41, 55, 0.8);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .thought-shimmer {
+            animation: shimmer 2s ease-in-out infinite alternate;
+        }
+        @keyframes shimmer {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen transition-all duration-300">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- Thought of the Day Section -->
+        <div class="glass-card rounded-3xl shadow-xl p-6 mb-8 border border-white/20 dark:border-gray-700/30">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-medium text-gray-800 dark:text-gray-100 flex items-center">
+                    <span class="mr-2">💭</span>
+                    Thought of the Day
+                </h2>
+                <button id="refreshThought" class="p-2 rounded-full bg-white/50 dark:bg-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-colors">
+                    <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="thoughtContent" class="text-center">
+                <div class="thought-shimmer text-gray-500 dark:text-gray-400">Loading inspiration...</div>
+            </div>
+        </div>
+
+        <!-- Header with Date and User Info -->
+        <div class="flex items-start justify-between mb-8">
+            <!-- Date in top left -->
+            <div class="text-left">
+                <div class="text-gray-600 dark:text-gray-400 text-sm mb-1" id="currentDay"></div>
+                <h1 class="text-3xl font-light text-gray-800 dark:text-gray-100" id="currentDate"></h1>
+            </div>
+            
+            <!-- Welcome message in center -->
+            <div class="text-center flex-1 px-8">
+                <p class="text-xl font-light text-gray-700 dark:text-gray-300 gradient-text" id="welcomeMessage">How are you feeling today?</p>
+            </div>
+            
+            <!-- Controls in top right -->
+            <div class="flex space-x-3">
+                <button id="darkModeToggle" class="p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm">
+                    <svg id="darkModeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Sun icon (light mode) -->
+                        <path id="sunIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" class="hidden dark:block"></path>
+                        <!-- Moon icon (dark mode) -->
+                        <path id="moonIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" class="block dark:hidden"></path>
+                    </svg>
+                </button>
+                <button id="statsBtn" class="px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 text-sm font-medium shadow-lg">
+                    📊 Insights
+                </button>
+                <button id="logoutBtn" class="px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-2xl transition-all duration-200 text-sm">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Mood Board -->
+        <div class="glass-card rounded-3xl shadow-xl p-8 mb-8 border border-white/20 dark:border-gray-700/30">
+            <h2 class="text-2xl font-light text-gray-800 dark:text-gray-100 mb-8 text-center">Today's Mood</h2>
+            
+            <!-- Mood Emojis -->
+            <div class="flex justify-between items-center mb-8 px-4">
+                <div class="text-center">
+                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="0">😭</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Sad</div>
+                </div>
+                <div class="text-center">
+                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="1">😡</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Frustrated</div>
+                </div>
+                <div class="text-center">
+                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="2">🫤</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Confused</div>
+                </div>
+                <div class="text-center">
+                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="3">😨</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Anxious</div>
+                </div>
+                <div class="text-center">
+                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="4">😄</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Happy</div>
+                </div>
+                <div class="text-center">
+                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="5">😌</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Content</div>
+                </div>
+                <div class="text-center">
+                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="6">🤩</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Excited</div>
+                </div>
+            </div>
+
+            <!-- Mood Slider -->
+            <div class="px-4 mb-6">
+                <input type="range" min="0" max="6" value="3" class="mood-slider w-full" id="moodSlider">
+            </div>
+
+            <!-- Current Mood Display -->
+            <div class="text-center">
+                <p class="text-gray-600 dark:text-gray-400">Current mood: <span id="currentMoodText" class="font-medium text-gray-800 dark:text-gray-200">Anxious</span></p>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Journal Entries Section -->
+            <div class="glass-card rounded-3xl shadow-xl p-8 border border-white/20 dark:border-gray-700/30">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
+                        <span class="mr-2">📝</span>
+                        Journal Entries
+                    </h3>
+                    <button id="addEntryBtn" class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-2xl flex items-center justify-center hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="journalEntries" class="space-y-4 max-h-64 overflow-y-auto">
+                    <!-- Journal entries will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Tasks Section -->
+            <div class="glass-card rounded-3xl shadow-xl p-8 border border-white/20 dark:border-gray-700/30">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
+                        <span class="mr-2">✅</span>
+                        Tasks
+                    </h3>
+                    <button id="addTaskBtn" class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl flex items-center justify-center hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="tasksList" class="space-y-3 max-h-64 overflow-y-auto">
+                    <!-- Tasks will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Habit Tracking Section -->
+        <div class="glass-card rounded-3xl shadow-xl p-8 mb-8 border border-white/20 dark:border-gray-700/30">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
+                    <span class="mr-2">🔄</span>
+                    Habit Tracking
+                </h3>
+                <button id="addHabitBtn" class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl flex items-center justify-center hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="habitsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Habits will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Mood History -->
+        <div class="glass-card rounded-3xl shadow-xl p-8 border border-white/20 dark:border-gray-700/30">
+            <h3 class="text-xl font-light text-gray-800 dark:text-gray-100 mb-6 flex items-center">
+                <span class="mr-2">📈</span>
+                Mood History
+            </h3>
+            <div id="moodHistory" class="grid grid-cols-7 gap-4">
+                <!-- Mood history will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class JournalApp {
+            constructor() {
+                this.currentDate = new Date().toISOString().split('T')[0];
+                this.userProfile = this.loadUserProfile();
+                this.entries = this.loadEntries();
+                this.moods = this.loadMoods();
+                this.tasks = this.loadTasks();
+                this.habits = this.loadHabits();
+                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Happy', 'Content', 'Excited'];
+                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😄', '😌', '🤩'];
+                this.GEMINI_API_KEY = 'AIzaSyC8dS2r1kLiYlnBVhYhPi1sNSCTFhMJFI8';
+                this.init();
+            }
+
+            init() {
+                // Check if user is logged in
+                if (!this.userProfile) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                this.initDarkMode();
+                this.setupDateDisplay();
+                this.setupMoodBoard();
+                this.loadTodaysMood();
+                this.renderJournalEntries();
+                this.renderTasks();
+                this.renderHabits();
+                this.renderMoodHistory();
+                this.loadThoughtOfTheDay();
+                this.bindEvents();
+            }
+
+            initDarkMode() {
+                // Load dark mode preference
+                const isDarkMode = localStorage.getItem('darkMode') === 'true';
+                
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                
+                // Update icon visibility
+                this.updateDarkModeIcon();
+            }
+
+            toggleDarkMode() {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                
+                if (isDarkMode) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('darkMode', 'false');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('darkMode', 'true');
+                }
+                
+                this.updateDarkModeIcon();
+            }
+
+            updateDarkModeIcon() {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                const sunIcon = document.getElementById('sunIcon');
+                const moonIcon = document.getElementById('moonIcon');
+                
+                if (isDarkMode) {
+                    sunIcon.classList.remove('hidden');
+                    sunIcon.classList.add('block');
+                    moonIcon.classList.remove('block');
+                    moonIcon.classList.add('hidden');
+                } else {
+                    sunIcon.classList.remove('block');
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                    moonIcon.classList.add('block');
+                }
+            }
+
+            setupDateDisplay() {
+                const today = new Date();
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+
+                document.getElementById('currentDay').textContent = dayNames[today.getDay()];
+                document.getElementById('currentDate').textContent = 
+                    `${monthNames[today.getMonth()]} ${today.getDate()}`;
+                document.getElementById('welcomeMessage').textContent = 
+                    `Hello ${this.userProfile.name}, how are you feeling today?`;
+            }
+
+            setupMoodBoard() {
+                const slider = document.getElementById('moodSlider');
+                const updateMoodDisplay = () => {
+                    const value = parseInt(slider.value);
+                    document.getElementById('currentMoodText').textContent = this.moodLabels[value];
+                    
+                    // Update emoji highlighting
+                    document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
+                        emoji.classList.toggle('active', index === value);
+                    });
+
+                    // Save mood
+                    this.saveMood(value);
+                };
+
+                slider.addEventListener('input', updateMoodDisplay);
+                
+                // Make emojis clickable
+                document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
+                    emoji.addEventListener('click', () => {
+                        slider.value = index;
+                        updateMoodDisplay();
+                    });
+                });
+
+                updateMoodDisplay();
+            }
+
+            loadTodaysMood() {
+                const todaysMood = this.moods[this.currentDate];
+                if (todaysMood !== undefined) {
+                    document.getElementById('moodSlider').value = todaysMood;
+                    document.getElementById('currentMoodText').textContent = this.moodLabels[todaysMood];
+                    document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
+                        emoji.classList.toggle('active', index === todaysMood);
+                    });
+                }
+            }
+
+            async loadThoughtOfTheDay() {
+                const thoughtContent = document.getElementById('thoughtContent');
+                
+                // Check if we already have a thought for today
+                const cachedThought = localStorage.getItem(`thought_${this.currentDate}`);
+                if (cachedThought) {
+                    this.displayThought(JSON.parse(cachedThought));
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.GEMINI_API_KEY}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: `Generate a beautiful, inspiring, and philosophical thought for today (${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}). 
+                                    
+                                    The thought should:
+                                    - Be uplifting and set a positive tone for the day
+                                    - Be philosophical or wisdom-based
+                                    - Be 1-2 sentences long
+                                    - Include insights about life, growth, mindfulness, or human nature
+                                    - Be universal and relatable
+                                    - Have a contemplative quality
+                                    
+                                    Also include the author if it's a famous quote, or mark it as "Ancient Wisdom" or "Reflection" if it's general wisdom.
+                                    
+                                    Format your response as:
+                                    **Quote:** [the inspiring thought]
+                                    **Author:** [author name or "Ancient Wisdom"]`
+                                }]
+                            }],
+                            generationConfig: {
+                                temperature: 0.8,
+                                maxOutputTokens: 200,
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const thoughtText = data.candidates[0].content.parts[0].text;
+                    
+                    // Parse the response
+                    const quoteMatch = thoughtText.match(/\*\*Quote:\*\*\s*(.+?)(?:\n|\*\*)/);
+                    const authorMatch = thoughtText.match(/\*\*Author:\*\*\s*(.+?)(?:\n|$)/);
+                    
+                    const thought = {
+                        quote: quoteMatch ? quoteMatch[1].trim() : "Every day is a new opportunity to grow and become the person you aspire to be.",
+                        author: authorMatch ? authorMatch[1].trim() : "Reflection"
+                    };
+
+                    // Cache the thought for today
+                    localStorage.setItem(`thought_${this.currentDate}`, JSON.stringify(thought));
+                    this.displayThought(thought);
+
+                } catch (error) {
+                    console.error('Error fetching thought of the day:', error);
+                    // Fallback thought
+                    const fallbackThought = {
+                        quote: "Every day is a new opportunity to grow and become the person you aspire to be.",
+                        author: "Reflection"
+                    };
+                    this.displayThought(fallbackThought);
+                }
+            }
+
+            displayThought(thought) {
+                const thoughtContent = document.getElementById('thoughtContent');
+                thoughtContent.innerHTML = `
+                    <blockquote class="text-lg italic text-gray-700 dark:text-gray-300 mb-3 leading-relaxed">
+                        "${thought.quote}"
+                    </blockquote>
+                    <cite class="text-sm text-gray-500 dark:text-gray-400 font-medium">— ${thought.author}</cite>
+                `;
+            }
+
+            async refreshThought() {
+                const thoughtContent = document.getElementById('thoughtContent');
+                thoughtContent.innerHTML = '<div class="thought-shimmer text-gray-500 dark:text-gray-400">Loading new inspiration...</div>';
+                
+                // Remove cached thought to force refresh
+                localStorage.removeItem(`thought_${this.currentDate}`);
+                await this.loadThoughtOfTheDay();
+            }
+
+            bindEvents() {
+                document.getElementById('darkModeToggle').addEventListener('click', () => {
+                    this.toggleDarkMode();
+                });
+
+                document.getElementById('refreshThought').addEventListener('click', () => {
+                    this.refreshThought();
+                });
+
+                document.getElementById('addEntryBtn').addEventListener('click', () => {
+                    window.location.href = `journal.html?date=${this.currentDate}`;
+                });
+
+                document.getElementById('addTaskBtn').addEventListener('click', () => {
+                    window.location.href = 'tasks.html';
+                });
+
+                document.getElementById('addHabitBtn').addEventListener('click', () => {
+                    window.location.href = 'habits.html';
+                });
+
+                document.getElementById('statsBtn').addEventListener('click', () => {
+                    window.location.href = 'statistics.html';
+                });
+
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    if (confirm('Are you sure you want to logout?')) {
+                        localStorage.removeItem('userProfile');
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+
+            renderJournalEntries() {
+                const entriesContainer = document.getElementById('journalEntries');
+                const todaysEntries = Object.keys(this.entries)
+                    .filter(date => date === this.currentDate)
+                    .map(date => ({ date, content: this.entries[date] }));
+
+                if (todaysEntries.length === 0) {
+                    entriesContainer.innerHTML = `
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </div>
+                            <p class="font-medium">No journal entries for today</p>
+                            <p class="text-sm mt-1">Click + to write or use voice assistant</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                entriesContainer.innerHTML = todaysEntries.map(entry => {
+                    const lines = entry.content.split('\n');
+                    const summary = lines[0];
+                    const content = lines.slice(2).join('\n'); // Skip summary and empty line
+                    const preview = content.length > 100 ? content.substring(0, 100) + '...' : content;
+                    
+                    return `
+                        <div class="p-4 bg-white/50 dark:bg-gray-700/50 rounded-2xl cursor-pointer hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200 border border-gray-200/50 dark:border-gray-600/50"
+                             onclick="window.location.href='journal.html?date=${entry.date}'">
+                            ${summary ? `<div class="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">${summary}</div>` : ''}
+                            <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${preview}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderTasks() {
+                const tasksContainer = document.getElementById('tasksList');
+                const todaysTasks = this.tasks[this.currentDate] || [];
+
+                if (todaysTasks.length === 0) {
+                    tasksContainer.innerHTML = `
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                            <p class="font-medium">No tasks for today</p>
+                            <p class="text-sm mt-1">Click + to add a task</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                tasksContainer.innerHTML = todaysTasks.map((task, index) => `
+                    <div class="flex items-center space-x-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-2xl border border-gray-200/50 dark:border-gray-600/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                               onchange="app.toggleTask(${index})" 
+                               class="w-5 h-5 text-green-500 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-green-500 focus:ring-2">
+                        <span class="${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-200'} text-sm flex-1 leading-relaxed">
+                            ${task.text}
+                        </span>
+                    </div>
+                `).join('');
+            }
+
+            renderHabits() {
+                const habitsContainer = document.getElementById('habitsList');
+                const habits = this.habits.list || [];
+
+                if (habits.length === 0) {
+                    habitsContainer.innerHTML = `
+                        <div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <p class="font-medium">No habits tracked yet</p>
+                            <p class="text-sm mt-1">Click + to add a habit</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                habitsContainer.innerHTML = habits.map((habit, index) => {
+                    const todayCompleted = this.habits.tracking?.[this.currentDate]?.[index] || false;
+                    const frequencyText = habit.frequency === 7 ? 'Daily' : `${habit.frequency || 7}x/week`;
+                    
+                    return `
+                        <div class="p-4 bg-white/50 dark:bg-gray-700/50 rounded-2xl border border-gray-200/50 dark:border-gray-600/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm font-medium text-gray-800 dark:text-gray-200">${habit.name}</span>
+                                <button onclick="app.toggleHabit(${index})" 
+                                        class="w-8 h-8 rounded-2xl ${todayCompleted ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gray-300 dark:bg-gray-600'} 
+                                               text-white text-sm flex items-center justify-center hover:scale-105 transition-all duration-200 shadow-sm">
+                                    ${todayCompleted ? '✓' : ''}
+                                </button>
+                            </div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                                ${habit.description || ''} 
+                                <span class="text-orange-600 dark:text-orange-400 font-medium">${frequencyText}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderMoodHistory() {
+                const historyContainer = document.getElementById('moodHistory');
+                const last7Days = [];
+                
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    last7Days.push(date.toISOString().split('T')[0]);
+                }
+
+                historyContainer.innerHTML = last7Days.map(date => {
+                    const mood = this.moods[date];
+                    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
+                    const dayOfMonth = new Date(date).getDate();
+                    
+                    return `
+                        <div class="text-center p-4 rounded-2xl ${date === this.currentDate ? 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/50 dark:to-purple-900/50 border-2 border-blue-200 dark:border-blue-700' : 'bg-white/50 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'} hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
+                            <div class="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">${dayOfWeek}</div>
+                            <div class="text-2xl mb-2">${mood !== undefined ? this.moodEmojis[mood] : '😐'}</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">${dayOfMonth}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            toggleTask(index) {
+                if (!this.tasks[this.currentDate]) return;
+                this.tasks[this.currentDate][index].completed = !this.tasks[this.currentDate][index].completed;
+                this.saveTasks();
+                this.renderTasks();
+            }
+
+            toggleHabit(index) {
+                if (!this.habits.tracking) this.habits.tracking = {};
+                if (!this.habits.tracking[this.currentDate]) this.habits.tracking[this.currentDate] = {};
+                
+                this.habits.tracking[this.currentDate][index] = !this.habits.tracking[this.currentDate][index];
+                this.saveHabits();
+                this.renderHabits();
+            }
+
+            saveMood(moodValue) {
+                this.moods[this.currentDate] = moodValue;
+                localStorage.setItem('journalMoods', JSON.stringify(this.moods));
+                this.renderMoodHistory();
+            }
+
+            saveTasks() {
+                localStorage.setItem('journalTasks', JSON.stringify(this.tasks));
+            }
+
+            saveHabits() {
+                localStorage.setItem('journalHabits', JSON.stringify(this.habits));
+            }
+
+            loadUserProfile() {
+                const stored = localStorage.getItem('userProfile');
+                return stored ? JSON.parse(stored) : null;
+            }
+
+            loadEntries() {
+                const stored = localStorage.getItem('journalEntries');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            loadMoods() {
+                const stored = localStorage.getItem('journalMoods');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            loadTasks() {
+                const stored = localStorage.getItem('journalTasks');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            loadHabits() {
+                const stored = localStorage.getItem('journalHabits');
+                return stored ? JSON.parse(stored) : { list: [], tracking: {} };
+            }
+        }
+
+        const app = new JournalApp();
+    </script>
+</body>
+</html> 
