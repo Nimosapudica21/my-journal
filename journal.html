@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Journal Entry - My Journal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -19,47 +19,69 @@
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
+        
+        /* Touch target improvements */
+        .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 640px) {
+            .mobile-stack {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .mobile-stack > * {
+                margin-bottom: 0.75rem;
+            }
+            
+            .mobile-stack > *:last-child {
+                margin-bottom: 0;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
-            <button id="backBtn" class="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+            <button id="backBtn" class="touch-target flex items-center justify-center sm:justify-start text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors bg-white/50 dark:bg-gray-800/50 rounded-xl px-4 py-2 sm:bg-transparent">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
                 Back to Home
             </button>
             <div class="text-center">
-                <h1 class="text-3xl font-light text-gray-800 dark:text-gray-100">Journal Entry</h1>
+                <h1 class="text-2xl sm:text-3xl font-light text-gray-800 dark:text-gray-100">Journal Entry</h1>
                 <p class="text-gray-600 dark:text-gray-400 text-sm" id="entryDate"></p>
             </div>
-            <div class="w-32"></div>
+            <div class="hidden sm:block w-32"></div>
         </div>
 
         <!-- Mood Display (if available) -->
-        <div id="moodDisplay" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6 hidden">
+        <div id="moodDisplay" class="bg-white dark:bg-gray-800 rounded-xl sm:rounded-lg shadow-sm p-3 sm:p-4 mb-4 sm:mb-6 hidden">
             <div class="flex items-center justify-center space-x-3">
                 <span class="text-sm text-gray-600 dark:text-gray-400">Today's mood:</span>
-                <span id="todayMoodEmoji" class="text-2xl"></span>
+                <span id="todayMoodEmoji" class="text-xl sm:text-2xl"></span>
                 <span id="todayMoodText" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
             </div>
         </div>
 
         <!-- Journal Entry Form -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <form id="entryForm" class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-xl sm:rounded-lg shadow-sm p-4 sm:p-6">
+            <form id="entryForm" class="space-y-4 sm:space-y-6">
                 <!-- Summary Input -->
                 <div>
                     <label for="entrySummary" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        One-line summary (Optional)
+                        One-line summary <span class="text-gray-500">(Optional)</span>
                     </label>
                     <input 
                         type="text" 
                         id="entrySummary" 
                         placeholder="What happened today in one sentence..."
-                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 text-base"
                     >
                 </div>
 
@@ -70,18 +92,20 @@
                     </label>
                     <textarea 
                         id="entryContent" 
-                        rows="15" 
+                        rows="12"
                         placeholder="Start writing your journal entry here..."
-                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 text-base"
                         required
                     ></textarea>
                 </div>
 
                 <!-- 💬 Talk to me Section -->
-                <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
-                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4 flex items-center">
-                        💬 Talk to me
-                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400 font-normal">Voice Assistant (30+ languages)</span>
+                <div class="border-t border-gray-200 dark:border-gray-600 pt-4 sm:pt-6">
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4 flex flex-col sm:flex-row sm:items-center">
+                        <span class="flex items-center">
+                            💬 Talk to me
+                        </span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400 font-normal mt-1 sm:mt-0 sm:ml-2">Voice Assistant (30+ languages)</span>
                     </h3>
                     
                     <!-- Language Selection -->
@@ -89,7 +113,7 @@
                         <label for="languageSelect" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Select your language:
                         </label>
-                        <select id="languageSelect" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100">
+                        <select id="languageSelect" class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100 text-base">
                             <option value="en">English</option>
                             <option value="es">Spanish (Español)</option>
                             <option value="fr">French (Français)</option>
@@ -125,8 +149,8 @@
                     </div>
 
                     <!-- Voice Recording Controls -->
-                    <div class="flex items-center space-x-4 mb-4">
-                        <button type="button" id="recordBtn" class="px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center space-x-2">
+                    <div class="mobile-stack flex items-center space-x-4 mb-4">
+                        <button type="button" id="recordBtn" class="touch-target px-4 sm:px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-xl hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
                             </svg>
@@ -149,7 +173,7 @@
                     </div>
 
                     <!-- Voice Instructions -->
-                    <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                    <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
                         <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">How it works:</h4>
                         <ul class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
                             <li>• Speak in any of the 30+ supported languages</li>
@@ -161,17 +185,17 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex space-x-4">
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                     <button 
                         type="submit" 
-                        class="flex-1 bg-blue-600 dark:bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium"
+                        class="touch-target flex-1 bg-blue-600 dark:bg-blue-700 text-white py-3 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium"
                     >
                         Save Entry
                     </button>
                     <button 
                         type="button" 
                         id="deleteBtn" 
-                        class="px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium hidden"
+                        class="touch-target px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-xl hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium hidden"
                     >
                         Delete
                     </button>
@@ -180,9 +204,9 @@
         </div>
 
         <!-- Writing Tips -->
-        <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div class="mt-4 sm:mt-6 bg-white dark:bg-gray-800 rounded-xl sm:rounded-lg shadow-sm p-4 sm:p-6">
             <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Writing Tips</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
                 <div>
                     <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-1">Reflect on your day</h4>
                     <p>What went well? What challenges did you face?</p>
@@ -201,6 +225,9 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Mobile Bottom Padding -->
+        <div class="h-4 sm:h-0"></div>
     </div>
 
     <script>
@@ -209,8 +236,8 @@
                 this.currentDate = this.getDateFromURL() || new Date().toISOString().split('T')[0];
                 this.entries = this.loadEntries();
                 this.moods = this.loadMoods();
-                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Happy', 'Content', 'Excited'];
-                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😄', '😌', '🤩'];
+                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Neutral', 'Happy', 'Content', 'Excited'];
+                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😐', '😄', '😌', '🤩'];
                 this.autoSaveTimer = null;
                 this.isRecording = false;
                 this.mediaRecorder = null;
@@ -231,6 +258,7 @@
                 this.displayMood();
                 this.bindEvents();
                 this.setupVoiceRecording();
+                this.setupMobileOptimizations();
                 document.getElementById('entryContent').focus();
             }
 
@@ -329,10 +357,74 @@
                 });
             }
 
+            setupMobileOptimizations() {
+                // Prevent zoom on input focus on iOS
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    if (viewport) {
+                        viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                    }
+                }
+
+                // Add better touch support for mobile recording
+                const recordBtn = document.getElementById('recordBtn');
+                recordBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    // Add visual feedback
+                    recordBtn.style.transform = 'scale(0.95)';
+                });
+
+                recordBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    recordBtn.style.transform = 'scale(1)';
+                });
+
+                // Improve scrolling on mobile
+                document.querySelectorAll('textarea, select').forEach(element => {
+                    element.style.webkitOverflowScrolling = 'touch';
+                });
+
+                // Handle mobile keyboard better
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', () => {
+                        // Adjust layout when mobile keyboard appears
+                        const vh = window.visualViewport.height * 0.01;
+                        document.documentElement.style.setProperty('--vh', `${vh}px`);
+                    });
+                }
+            }
+
             async startRecording() {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    this.mediaRecorder = new MediaRecorder(stream);
+                    // Check for mobile browser compatibility
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        alert('Voice recording is not supported on this device/browser. Please try using Chrome or Safari.');
+                        return;
+                    }
+
+                    // Request microphone permission with mobile-friendly constraints
+                    const constraints = {
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                            sampleRate: 44100,
+                            channelCount: 1
+                        }
+                    };
+
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    
+                    // Check MediaRecorder support
+                    if (!MediaRecorder.isTypeSupported('audio/webm') && !MediaRecorder.isTypeSupported('audio/mp4')) {
+                        alert('Audio recording format not supported on this device. Please try a different browser.');
+                        return;
+                    }
+
+                    // Use the best available format
+                    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+                    this.mediaRecorder = new MediaRecorder(stream, { mimeType });
+                    
                     const audioChunks = [];
 
                     this.mediaRecorder.ondataavailable = (event) => {
@@ -340,7 +432,7 @@
                     };
 
                     this.mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioBlob = new Blob(audioChunks, { type: mimeType });
                         await this.processAudioWithGemini(audioBlob);
                         
                         // Stop all tracks to release microphone
@@ -354,7 +446,19 @@
 
                 } catch (error) {
                     console.error('Error starting recording:', error);
-                    alert('Could not access microphone. Please check permissions.');
+                    
+                    let errorMessage = 'Could not access microphone. ';
+                    if (error.name === 'NotAllowedError') {
+                        errorMessage += 'Please allow microphone access and try again.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMessage += 'No microphone found on this device.';
+                    } else if (error.name === 'NotSupportedError') {
+                        errorMessage += 'Voice recording is not supported on this browser.';
+                    } else {
+                        errorMessage += 'Please check your microphone permissions and try again.';
+                    }
+                    
+                    alert(errorMessage);
                 }
             }
 

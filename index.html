@@ -195,7 +195,7 @@
             <h2 class="text-xl sm:text-2xl font-light text-gray-800 dark:text-gray-100 mb-6 sm:mb-8 text-center">Today's Mood</h2>
             
             <!-- Mood Emojis -->
-            <div class="grid grid-cols-4 sm:flex sm:justify-between items-center gap-2 sm:gap-0 mb-6 sm:mb-8 px-2 sm:px-4">
+            <div class="grid grid-cols-4 gap-2 mb-6 sm:mb-8 px-2 sm:px-4">
                 <div class="text-center no-select">
                     <div class="mood-emoji" data-mood="0">😭</div>
                     <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Sad</div>
@@ -212,29 +212,32 @@
                     <div class="mood-emoji" data-mood="3">😨</div>
                     <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Anxious</div>
                 </div>
-                <div class="text-center no-select sm:hidden"></div>
                 <div class="text-center no-select">
-                    <div class="mood-emoji" data-mood="4">😄</div>
+                    <div class="mood-emoji" data-mood="4">😐</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Neutral</div>
+                </div>
+                <div class="text-center no-select">
+                    <div class="mood-emoji" data-mood="5">😄</div>
                     <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Happy</div>
                 </div>
                 <div class="text-center no-select">
-                    <div class="mood-emoji" data-mood="5">😌</div>
+                    <div class="mood-emoji" data-mood="6">😌</div>
                     <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Content</div>
                 </div>
                 <div class="text-center no-select">
-                    <div class="mood-emoji" data-mood="6">🤩</div>
+                    <div class="mood-emoji" data-mood="7">🤩</div>
                     <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Excited</div>
                 </div>
             </div>
 
             <!-- Mood Slider -->
             <div class="px-2 sm:px-4 mb-4 sm:mb-6">
-                <input type="range" min="0" max="6" value="3" class="mood-slider w-full" id="moodSlider">
+                <input type="range" min="0" max="7" value="4" class="mood-slider w-full" id="moodSlider">
             </div>
 
             <!-- Current Mood Display -->
             <div class="text-center">
-                <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Current mood: <span id="currentMoodText" class="font-medium text-gray-800 dark:text-gray-200">Anxious</span></p>
+                <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Current mood: <span id="currentMoodText" class="font-medium text-gray-800 dark:text-gray-200">Neutral</span></p>
             </div>
         </div>
 
@@ -325,8 +328,8 @@
                 this.moods = this.loadMoods();
                 this.tasks = this.loadTasks();
                 this.habits = this.loadHabits();
-                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Happy', 'Content', 'Excited'];
-                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😄', '😌', '🤩'];
+                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Neutral', 'Happy', 'Content', 'Excited'];
+                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😐', '😄', '😌', '🤩'];
                 this.GEMINI_API_KEY = 'AIzaSyC8dS2r1kLiYlnBVhYhPi1sNSCTFhMJFI8';
                 this.init();
             }
