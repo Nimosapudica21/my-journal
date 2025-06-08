@@ -14,7 +14,7 @@
         .mood-slider {
             -webkit-appearance: none;
             appearance: none;
-            height: 8px;
+            height: 10px;
             border-radius: 5px;
             background: linear-gradient(to right, #ef4444, #f97316, #eab308, #84cc16, #22c55e, #06b6d4, #8b5cf6);
             outline: none;
@@ -22,8 +22,8 @@
         .mood-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: white;
             cursor: pointer;
@@ -31,8 +31,8 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         .mood-slider::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: white;
             cursor: pointer;
@@ -40,13 +40,26 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         .mood-emoji {
-            font-size: 2rem;
+            font-size: 2.5rem;
             transition: transform 0.2s;
             filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 1rem;
+            min-height: 4rem;
+            min-width: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mood-emoji:hover, .mood-emoji:active {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
         }
         .mood-emoji.active {
-            transform: scale(1.3);
+            transform: scale(1.2);
             filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.3));
+            background: rgba(255, 255, 255, 0.2);
         }
         .dark .mood-slider::-webkit-slider-thumb {
             border: 3px solid #e5e7eb;
@@ -74,18 +87,58 @@
             0% { opacity: 0.7; }
             100% { opacity: 1; }
         }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .mood-emoji {
+                font-size: 2rem;
+                min-height: 3.5rem;
+                min-width: 3.5rem;
+                padding: 0.25rem;
+            }
+            
+            .mood-slider {
+                height: 12px;
+            }
+            
+            .mood-slider::-webkit-slider-thumb {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .mood-slider::-moz-range-thumb {
+                width: 32px;
+                height: 32px;
+            }
+        }
+        
+        /* Touch target improvements */
+        .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        /* Prevent text selection on touch */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen transition-all duration-300">
-    <div class="container mx-auto px-4 py-6 max-w-6xl">
+    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
         <!-- Thought of the Day Section -->
-        <div class="glass-card rounded-3xl shadow-xl p-6 mb-8 border border-white/20 dark:border-gray-700/30">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-medium text-gray-800 dark:text-gray-100 flex items-center">
+        <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 mb-6 sm:mb-8 border border-white/20 dark:border-gray-700/30">
+            <div class="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 class="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100 flex items-center">
                     <span class="mr-2">💭</span>
-                    Thought of the Day
+                    <span class="hidden sm:inline">Thought of the Day</span>
+                    <span class="sm:hidden">Daily Thought</span>
                 </h2>
-                <button id="refreshThought" class="p-2 rounded-full bg-white/50 dark:bg-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-colors">
+                <button id="refreshThought" class="touch-target p-2 rounded-full bg-white/50 dark:bg-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-colors">
                     <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -97,21 +150,24 @@
         </div>
 
         <!-- Header with Date and User Info -->
-        <div class="flex items-start justify-between mb-8">
-            <!-- Date in top left -->
-            <div class="text-left">
-                <div class="text-gray-600 dark:text-gray-400 text-sm mb-1" id="currentDay"></div>
-                <h1 class="text-3xl font-light text-gray-800 dark:text-gray-100" id="currentDate"></h1>
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+            <!-- Date and Welcome on mobile, side by side on desktop -->
+            <div class="flex flex-col sm:flex-row sm:items-start sm:space-x-8 flex-1">
+                <!-- Date -->
+                <div class="text-left">
+                    <div class="text-gray-600 dark:text-gray-400 text-sm mb-1" id="currentDay"></div>
+                    <h1 class="text-2xl sm:text-3xl font-light text-gray-800 dark:text-gray-100" id="currentDate"></h1>
+                </div>
+                
+                <!-- Welcome message -->
+                <div class="text-left sm:text-center flex-1 mt-2 sm:mt-0 sm:px-8">
+                    <p class="text-lg sm:text-xl font-light text-gray-700 dark:text-gray-300 gradient-text" id="welcomeMessage">How are you feeling today?</p>
+                </div>
             </div>
             
-            <!-- Welcome message in center -->
-            <div class="text-center flex-1 px-8">
-                <p class="text-xl font-light text-gray-700 dark:text-gray-300 gradient-text" id="welcomeMessage">How are you feeling today?</p>
-            </div>
-            
-            <!-- Controls in top right -->
-            <div class="flex space-x-3">
-                <button id="darkModeToggle" class="p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm">
+            <!-- Controls -->
+            <div class="flex space-x-2 sm:space-x-3 justify-end sm:justify-start">
+                <button id="darkModeToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm">
                     <svg id="darkModeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <!-- Sun icon (light mode) -->
                         <path id="sunIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" class="hidden dark:block"></path>
@@ -119,92 +175,100 @@
                         <path id="moonIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" class="block dark:hidden"></path>
                     </svg>
                 </button>
-                <button id="statsBtn" class="px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 text-sm font-medium shadow-lg">
-                    📊 Insights
+                <button id="statsBtn" class="touch-target px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl sm:rounded-2xl hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 text-sm font-medium shadow-lg">
+                    <span class="hidden sm:inline">📊 Insights</span>
+                    <span class="sm:hidden">📊</span>
                 </button>
-                <button id="logoutBtn" class="px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-2xl transition-all duration-200 text-sm">
-                    Logout
+                <button id="logoutBtn" class="touch-target px-3 sm:px-4 py-2 sm:py-3 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-xl sm:rounded-2xl transition-all duration-200 text-sm">
+                    <span class="hidden sm:inline">Logout</span>
+                    <span class="sm:hidden">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </span>
                 </button>
             </div>
         </div>
 
         <!-- Mood Board -->
-        <div class="glass-card rounded-3xl shadow-xl p-8 mb-8 border border-white/20 dark:border-gray-700/30">
-            <h2 class="text-2xl font-light text-gray-800 dark:text-gray-100 mb-8 text-center">Today's Mood</h2>
+        <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8 border border-white/20 dark:border-gray-700/30">
+            <h2 class="text-xl sm:text-2xl font-light text-gray-800 dark:text-gray-100 mb-6 sm:mb-8 text-center">Today's Mood</h2>
             
             <!-- Mood Emojis -->
-            <div class="flex justify-between items-center mb-8 px-4">
-                <div class="text-center">
-                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="0">😭</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Sad</div>
+            <div class="grid grid-cols-4 sm:flex sm:justify-between items-center gap-2 sm:gap-0 mb-6 sm:mb-8 px-2 sm:px-4">
+                <div class="text-center no-select">
+                    <div class="mood-emoji" data-mood="0">😭</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Sad</div>
                 </div>
-                <div class="text-center">
-                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="1">😡</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Frustrated</div>
+                <div class="text-center no-select">
+                    <div class="mood-emoji" data-mood="1">😡</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Angry</div>
                 </div>
-                <div class="text-center">
-                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="2">🫤</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Confused</div>
+                <div class="text-center no-select">
+                    <div class="mood-emoji" data-mood="2">🫤</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Confused</div>
                 </div>
-                <div class="text-center">
-                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="3">😨</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Anxious</div>
+                <div class="text-center no-select">
+                    <div class="mood-emoji" data-mood="3">😨</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Anxious</div>
                 </div>
-                <div class="text-center">
-                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="4">😄</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Happy</div>
+                <div class="text-center no-select sm:hidden"></div>
+                <div class="text-center no-select">
+                    <div class="mood-emoji" data-mood="4">😄</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Happy</div>
                 </div>
-                <div class="text-center">
-                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="5">😌</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Content</div>
+                <div class="text-center no-select">
+                    <div class="mood-emoji" data-mood="5">😌</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Content</div>
                 </div>
-                <div class="text-center">
-                    <div class="mood-emoji cursor-pointer hover:scale-110 transition-transform" data-mood="6">🤩</div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">Excited</div>
+                <div class="text-center no-select">
+                    <div class="mood-emoji" data-mood="6">🤩</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">Excited</div>
                 </div>
             </div>
 
             <!-- Mood Slider -->
-            <div class="px-4 mb-6">
+            <div class="px-2 sm:px-4 mb-4 sm:mb-6">
                 <input type="range" min="0" max="6" value="3" class="mood-slider w-full" id="moodSlider">
             </div>
 
             <!-- Current Mood Display -->
             <div class="text-center">
-                <p class="text-gray-600 dark:text-gray-400">Current mood: <span id="currentMoodText" class="font-medium text-gray-800 dark:text-gray-200">Anxious</span></p>
+                <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Current mood: <span id="currentMoodText" class="font-medium text-gray-800 dark:text-gray-200">Anxious</span></p>
             </div>
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
             <!-- Journal Entries Section -->
-            <div class="glass-card rounded-3xl shadow-xl p-8 border border-white/20 dark:border-gray-700/30">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
+            <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 border border-white/20 dark:border-gray-700/30">
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
                         <span class="mr-2">📝</span>
-                        Journal Entries
+                        <span class="hidden sm:inline">Journal Entries</span>
+                        <span class="sm:hidden">Journal</span>
                     </h3>
-                    <button id="addEntryBtn" class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-2xl flex items-center justify-center hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="addEntryBtn" class="touch-target w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
                     </button>
                 </div>
                 
-                <div id="journalEntries" class="space-y-4 max-h-64 overflow-y-auto">
+                <div id="journalEntries" class="space-y-3 sm:space-y-4 max-h-64 overflow-y-auto">
                     <!-- Journal entries will be populated by JavaScript -->
                 </div>
             </div>
 
             <!-- Tasks Section -->
-            <div class="glass-card rounded-3xl shadow-xl p-8 border border-white/20 dark:border-gray-700/30">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
+            <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 border border-white/20 dark:border-gray-700/30">
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
                         <span class="mr-2">✅</span>
                         Tasks
                     </h3>
-                    <button id="addTaskBtn" class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl flex items-center justify-center hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="addTaskBtn" class="touch-target w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
                     </button>
@@ -217,34 +281,39 @@
         </div>
 
         <!-- Habit Tracking Section -->
-        <div class="glass-card rounded-3xl shadow-xl p-8 mb-8 border border-white/20 dark:border-gray-700/30">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
+        <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8 border border-white/20 dark:border-gray-700/30">
+            <div class="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
                     <span class="mr-2">🔄</span>
-                    Habit Tracking
+                    <span class="hidden sm:inline">Habit Tracking</span>
+                    <span class="sm:hidden">Habits</span>
                 </h3>
-                <button id="addHabitBtn" class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl flex items-center justify-center hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="addHabitBtn" class="touch-target w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl sm:rounded-2xl flex items-center justify-center hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
                 </button>
             </div>
             
-            <div id="habitsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="habitsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 <!-- Habits will be populated by JavaScript -->
             </div>
         </div>
 
         <!-- Mood History -->
-        <div class="glass-card rounded-3xl shadow-xl p-8 border border-white/20 dark:border-gray-700/30">
-            <h3 class="text-xl font-light text-gray-800 dark:text-gray-100 mb-6 flex items-center">
+        <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 border border-white/20 dark:border-gray-700/30">
+            <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 flex items-center">
                 <span class="mr-2">📈</span>
-                Mood History
+                <span class="hidden sm:inline">Mood History</span>
+                <span class="sm:hidden">History</span>
             </h3>
-            <div id="moodHistory" class="grid grid-cols-7 gap-4">
+            <div id="moodHistory" class="grid grid-cols-7 gap-2 sm:gap-4">
                 <!-- Mood history will be populated by JavaScript -->
             </div>
         </div>
+        
+        <!-- Mobile Bottom Padding -->
+        <div class="h-4 sm:h-0"></div>
     </div>
 
     <script>
@@ -279,6 +348,30 @@
                 this.renderMoodHistory();
                 this.loadThoughtOfTheDay();
                 this.bindEvents();
+                this.setupMobileOptimizations();
+            }
+
+            setupMobileOptimizations() {
+                // Prevent zoom on input focus on iOS
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                }
+
+                // Add touch event listeners for better mobile interaction
+                document.querySelectorAll('.mood-emoji').forEach(emoji => {
+                    emoji.addEventListener('touchstart', (e) => {
+                        e.preventDefault(); // Prevent default touch behavior
+                        const moodValue = parseInt(emoji.getAttribute('data-mood'));
+                        document.getElementById('moodSlider').value = moodValue;
+                        this.updateMoodDisplay();
+                    });
+                });
+
+                // Improve touch scrolling
+                document.querySelectorAll('[id$="List"], [id$="Entries"]').forEach(container => {
+                    container.style.webkitOverflowScrolling = 'touch';
+                });
             }
 
             initDarkMode() {
@@ -357,15 +450,37 @@
 
                 slider.addEventListener('input', updateMoodDisplay);
                 
-                // Make emojis clickable
+                // Make emojis clickable for both mouse and touch
                 document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
+                    // Mouse events
                     emoji.addEventListener('click', () => {
+                        slider.value = index;
+                        updateMoodDisplay();
+                    });
+                    
+                    // Touch events for better mobile experience
+                    emoji.addEventListener('touchend', (e) => {
+                        e.preventDefault(); // Prevent click event from firing
                         slider.value = index;
                         updateMoodDisplay();
                     });
                 });
 
                 updateMoodDisplay();
+            }
+
+            updateMoodDisplay() {
+                const slider = document.getElementById('moodSlider');
+                const value = parseInt(slider.value);
+                document.getElementById('currentMoodText').textContent = this.moodLabels[value];
+                
+                // Update emoji highlighting
+                document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
+                    emoji.classList.toggle('active', index === value);
+                });
+
+                // Save mood
+                this.saveMood(value);
             }
 
             loadTodaysMood() {
@@ -513,14 +628,14 @@
 
                 if (todaysEntries.length === 0) {
                     entriesContainer.innerHTML = `
-                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
-                                <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gray-100 dark:bg-gray-700 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
                             </div>
-                            <p class="font-medium">No journal entries for today</p>
-                            <p class="text-sm mt-1">Click + to write or use voice assistant</p>
+                            <p class="text-sm sm:text-base font-medium">No journal entries for today</p>
+                            <p class="text-xs sm:text-sm mt-1">Tap + to write or use voice assistant</p>
                         </div>
                     `;
                     return;
@@ -530,13 +645,13 @@
                     const lines = entry.content.split('\n');
                     const summary = lines[0];
                     const content = lines.slice(2).join('\n'); // Skip summary and empty line
-                    const preview = content.length > 100 ? content.substring(0, 100) + '...' : content;
+                    const preview = content.length > 80 ? content.substring(0, 80) + '...' : content;
                     
                     return `
-                        <div class="p-4 bg-white/50 dark:bg-gray-700/50 rounded-2xl cursor-pointer hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200 border border-gray-200/50 dark:border-gray-600/50"
+                        <div class="p-3 sm:p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl sm:rounded-2xl cursor-pointer hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200 border border-gray-200/50 dark:border-gray-600/50 touch-target"
                              onclick="window.location.href='journal.html?date=${entry.date}'">
-                            ${summary ? `<div class="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">${summary}</div>` : ''}
-                            <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${preview}</div>
+                            ${summary ? `<div class="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">${summary}</div>` : ''}
+                            <div class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${preview}</div>
                         </div>
                     `;
                 }).join('');
@@ -548,25 +663,25 @@
 
                 if (todaysTasks.length === 0) {
                     tasksContainer.innerHTML = `
-                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
-                                <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gray-100 dark:bg-gray-700 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
                             </div>
-                            <p class="font-medium">No tasks for today</p>
-                            <p class="text-sm mt-1">Click + to add a task</p>
+                            <p class="text-sm sm:text-base font-medium">No tasks for today</p>
+                            <p class="text-xs sm:text-sm mt-1">Tap + to add a task</p>
                         </div>
                     `;
                     return;
                 }
 
                 tasksContainer.innerHTML = todaysTasks.map((task, index) => `
-                    <div class="flex items-center space-x-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-2xl border border-gray-200/50 dark:border-gray-600/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
+                    <div class="flex items-center space-x-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-600/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
                         <input type="checkbox" ${task.completed ? 'checked' : ''} 
                                onchange="app.toggleTask(${index})" 
-                               class="w-5 h-5 text-green-500 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-green-500 focus:ring-2">
-                        <span class="${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-200'} text-sm flex-1 leading-relaxed">
+                               class="w-5 h-5 text-green-500 bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-green-500 focus:ring-2 touch-target">
+                        <span class="${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-200'} text-xs sm:text-sm flex-1 leading-relaxed">
                             ${task.text}
                         </span>
                     </div>
@@ -579,14 +694,14 @@
 
                 if (habits.length === 0) {
                     habitsContainer.innerHTML = `
-                        <div class="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
-                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
-                                <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="col-span-full text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gray-100 dark:bg-gray-700 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
-                            <p class="font-medium">No habits tracked yet</p>
-                            <p class="text-sm mt-1">Click + to add a habit</p>
+                            <p class="text-sm sm:text-base font-medium">No habits tracked yet</p>
+                            <p class="text-xs sm:text-sm mt-1">Tap + to add a habit</p>
                         </div>
                     `;
                     return;
@@ -597,17 +712,17 @@
                     const frequencyText = habit.frequency === 7 ? 'Daily' : `${habit.frequency || 7}x/week`;
                     
                     return `
-                        <div class="p-4 bg-white/50 dark:bg-gray-700/50 rounded-2xl border border-gray-200/50 dark:border-gray-600/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="text-sm font-medium text-gray-800 dark:text-gray-200">${habit.name}</span>
+                        <div class="p-3 sm:p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-600/50 hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
+                            <div class="flex items-center justify-between mb-2 sm:mb-3">
+                                <span class="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 leading-tight">${habit.name}</span>
                                 <button onclick="app.toggleHabit(${index})" 
-                                        class="w-8 h-8 rounded-2xl ${todayCompleted ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gray-300 dark:bg-gray-600'} 
+                                        class="touch-target w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${todayCompleted ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gray-300 dark:bg-gray-600'} 
                                                text-white text-sm flex items-center justify-center hover:scale-105 transition-all duration-200 shadow-sm">
                                     ${todayCompleted ? '✓' : ''}
                                 </button>
                             </div>
                             <div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                                ${habit.description || ''} 
+                                ${habit.description ? `<div class="mb-1">${habit.description}</div>` : ''}
                                 <span class="text-orange-600 dark:text-orange-400 font-medium">${frequencyText}</span>
                             </div>
                         </div>
@@ -631,9 +746,9 @@
                     const dayOfMonth = new Date(date).getDate();
                     
                     return `
-                        <div class="text-center p-4 rounded-2xl ${date === this.currentDate ? 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/50 dark:to-purple-900/50 border-2 border-blue-200 dark:border-blue-700' : 'bg-white/50 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'} hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
-                            <div class="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">${dayOfWeek}</div>
-                            <div class="text-2xl mb-2">${mood !== undefined ? this.moodEmojis[mood] : '😐'}</div>
+                        <div class="text-center p-2 sm:p-4 rounded-xl sm:rounded-2xl ${date === this.currentDate ? 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/50 dark:to-purple-900/50 border-2 border-blue-200 dark:border-blue-700' : 'bg-white/50 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'} hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
+                            <div class="text-xs text-gray-600 dark:text-gray-400 mb-1 sm:mb-2 font-medium">${dayOfWeek}</div>
+                            <div class="text-lg sm:text-2xl mb-1 sm:mb-2">${mood !== undefined ? this.moodEmojis[mood] : '😐'}</div>
                             <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">${dayOfMonth}</div>
                         </div>
                     `;
