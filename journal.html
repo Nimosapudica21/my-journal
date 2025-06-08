@@ -57,7 +57,6 @@
                 <h1 class="text-2xl sm:text-3xl font-light text-gray-800 dark:text-gray-100">Journal Entry</h1>
                 <p class="text-gray-600 dark:text-gray-400 text-sm" id="entryDate"></p>
             </div>
-            <div class="w-16"></div> <!-- Spacer for alignment -->
         </div>
 
         <!-- Mood Display (if available) -->
@@ -554,22 +553,6 @@
                 }
             }
 
-            updateRecordingUI() {
-                const recordBtn = document.getElementById('recordBtn');
-                const recordBtnText = document.getElementById('recordBtnText');
-                const recordingStatus = document.getElementById('recordingStatus');
-
-                if (this.isRecording) {
-                    recordBtn.className = 'touch-target px-4 sm:px-6 py-3 bg-gray-600 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial';
-                    recordBtnText.textContent = 'Stop Recording';
-                    recordingStatus.classList.remove('hidden');
-                } else {
-                    recordBtn.className = 'touch-target px-4 sm:px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-xl hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial';
-                    recordBtnText.textContent = 'Start Recording';
-                    recordingStatus.classList.add('hidden');
-                }
-            }
-
             startRecordingTimer() {
                 this.recordingStartTime = Date.now();
                 this.recordingTimer = setInterval(() => {
@@ -585,6 +568,22 @@
                 if (this.recordingTimer) {
                     clearInterval(this.recordingTimer);
                     this.recordingTimer = null;
+                }
+            }
+
+            updateRecordingUI() {
+                const recordBtn = document.getElementById('recordBtn');
+                const recordBtnText = document.getElementById('recordBtnText');
+                const recordingStatus = document.getElementById('recordingStatus');
+
+                if (this.isRecording) {
+                    recordBtn.className = 'touch-target px-4 sm:px-6 py-3 bg-gray-600 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial';
+                    recordBtnText.textContent = 'Stop Recording';
+                    recordingStatus.classList.remove('hidden');
+                } else {
+                    recordBtn.className = 'touch-target px-4 sm:px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-xl hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial';
+                    recordBtnText.textContent = 'Start Recording';
+                    recordingStatus.classList.add('hidden');
                 }
             }
 
