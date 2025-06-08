@@ -166,36 +166,39 @@
             </div>
             
             <!-- Controls -->
-            <div class="flex space-x-2 sm:space-x-3 justify-end sm:justify-start">
-                <!-- Music Control Button -->
-                <button id="musicToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600 flex flex-col items-center space-y-1" title="Play mood music">
-                    <svg id="musicIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex space-x-2 sm:space-x-3 justify-between sm:justify-end">
+                <!-- Music Control Button - Left Side -->
+                <button id="musicToggle" class="touch-target p-3 sm:p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl sm:rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2" title="Play mood music">
+                    <svg id="musicIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <!-- Play icon (default state) -->
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
                     </svg>
-                    <span id="musicLabel" class="text-xs font-medium text-gray-600 dark:text-gray-400">Play Music</span>
+                    <span id="musicLabel" class="text-sm font-medium hidden sm:inline">Play Music</span>
                 </button>
                 
-                <button id="darkModeToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm">
-                    <svg id="darkModeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <!-- Sun icon (light mode) -->
-                        <path id="sunIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" class="hidden dark:block"></path>
-                        <!-- Moon icon (dark mode) -->
-                        <path id="moonIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" class="block dark:hidden"></path>
-                    </svg>
-                </button>
-                <button id="statsBtn" class="touch-target px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl sm:rounded-2xl hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 text-sm font-medium shadow-lg">
-                    <span class="hidden sm:inline">📊 Insights</span>
-                    <span class="sm:hidden">📊</span>
-                </button>
-                <button id="logoutBtn" class="touch-target px-3 sm:px-4 py-2 sm:py-3 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-xl sm:rounded-2xl transition-all duration-200 text-sm">
-                    <span class="hidden sm:inline">Logout</span>
-                    <span class="sm:hidden">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                <!-- Right Side Controls -->
+                <div class="flex space-x-2 sm:space-x-3">
+                    <button id="darkModeToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm">
+                        <svg id="darkModeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- Sun icon (light mode) -->
+                            <path id="sunIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" class="hidden dark:block"></path>
+                            <!-- Moon icon (dark mode) -->
+                            <path id="moonIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" class="block dark:hidden"></path>
                         </svg>
-                    </span>
-                </button>
+                    </button>
+                    <button id="statsBtn" class="touch-target px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl sm:rounded-2xl hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 text-sm font-medium shadow-lg">
+                        <span class="hidden sm:inline">📊 Insights</span>
+                        <span class="sm:hidden">📊</span>
+                    </button>
+                    <button id="logoutBtn" class="touch-target px-3 sm:px-4 py-2 sm:py-3 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-xl sm:rounded-2xl transition-all duration-200 text-sm">
+                        <span class="hidden sm:inline">Logout</span>
+                        <span class="sm:hidden">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -393,14 +396,60 @@
                     });
                 }
 
-                // Add haptic feedback for buttons on supported devices
+                // Enhanced mobile audio optimization
                 const musicButton = document.getElementById('musicToggle');
-                if (musicButton && 'vibrate' in navigator) {
-                    musicButton.addEventListener('touchstart', () => {
-                        // Small vibration feedback when touching music button
-                        navigator.vibrate && navigator.vibrate(10);
+                if (musicButton) {
+                    // Add haptic feedback for buttons on supported devices
+                    if ('vibrate' in navigator) {
+                        musicButton.addEventListener('touchstart', () => {
+                            // Small vibration feedback when touching music button
+                            navigator.vibrate && navigator.vibrate(10);
+                        });
+                    }
+                    
+                    // Ensure proper touch event handling on mobile
+                    musicButton.style.touchAction = 'manipulation';
+                    musicButton.style.webkitTouchCallout = 'none';
+                    musicButton.style.webkitUserSelect = 'none';
+                    
+                    // Add focus handling for accessibility
+                    musicButton.addEventListener('focus', () => {
+                        musicButton.style.outline = '2px solid #10b981';
+                        musicButton.style.outlineOffset = '2px';
+                    });
+                    
+                    musicButton.addEventListener('blur', () => {
+                        musicButton.style.outline = 'none';
                     });
                 }
+
+                // Mobile-specific audio context unlock (required for iOS)
+                const unlockAudio = () => {
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume().then(() => {
+                            console.log('Audio context unlocked on mobile');
+                        }).catch(error => {
+                            console.warn('Failed to unlock audio context:', error);
+                        });
+                    }
+                };
+
+                // Try to unlock audio on any user interaction
+                ['touchstart', 'touchend', 'click', 'keydown'].forEach(eventType => {
+                    document.addEventListener(eventType, unlockAudio, { once: true, passive: true });
+                });
+
+                // Special handling for mood board interactions on mobile
+                document.querySelectorAll('.mood-emoji').forEach(emoji => {
+                    emoji.style.touchAction = 'manipulation';
+                    emoji.addEventListener('touchstart', (e) => {
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                    }, { passive: true });
+                    
+                    emoji.addEventListener('touchend', (e) => {
+                        e.currentTarget.style.transform = 'scale(1.2)';
+                    }, { passive: true });
+                });
             }
 
             initDarkMode() {
@@ -506,7 +555,14 @@
 
                 // Enhanced mobile and desktop event handling
                 const handleMusicToggle = async (e) => {
-                    e.preventDefault(); // Prevent default behaviors
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Add visual feedback immediately
+                    musicToggle.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        musicToggle.style.transform = 'scale(1)';
+                    }, 150);
                     
                     try {
                         if (this.isPlaying) {
@@ -516,33 +572,61 @@
                         }
                     } catch (error) {
                         console.error('Music toggle error:', error);
-                        alert('Audio not available. Please try again or check your device audio settings.');
+                        
+                        // Show user-friendly error based on the type
+                        let errorMessage = 'Audio playback issue. ';
+                        if (error.name === 'NotAllowedError') {
+                            errorMessage += 'Please allow audio permissions in your browser settings and try again.';
+                        } else if (error.name === 'NotSupportedError') {
+                            errorMessage += 'Audio playback is not supported on this device/browser.';
+                        } else if (error.message.includes('AudioContext')) {
+                            errorMessage += 'Please try tapping the button again. Some devices require multiple taps to enable audio.';
+                        } else {
+                            errorMessage += 'Please check your device audio settings and try again.';
+                        }
+                        
+                        alert(errorMessage);
+                        this.updateMusicButton('play');
                     }
                 };
 
-                // Add both click and touch events for maximum mobile compatibility
-                musicToggle.addEventListener('click', handleMusicToggle);
-                musicToggle.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    handleMusicToggle(e);
-                });
+                // Remove existing event listeners to prevent duplicates
+                musicToggle.removeEventListener('click', handleMusicToggle);
+                musicToggle.removeEventListener('touchend', handleMusicToggle);
 
-                // Prevent double-firing on mobile
+                // Add primary click event
+                musicToggle.addEventListener('click', handleMusicToggle, { passive: false });
+
+                // Enhanced mobile touch handling
+                let touchStarted = false;
+                
                 musicToggle.addEventListener('touchstart', (e) => {
                     e.preventDefault();
-                    // Visual feedback on touch
+                    touchStarted = true;
                     musicToggle.style.transform = 'scale(0.95)';
-                });
+                    
+                    // Add haptic feedback if available
+                    if (navigator.vibrate) {
+                        navigator.vibrate(10);
+                    }
+                }, { passive: false });
+
+                musicToggle.addEventListener('touchend', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (touchStarted) {
+                        touchStarted = false;
+                        musicToggle.style.transform = 'scale(1)';
+                        
+                        // Handle the music toggle on touchend
+                        await handleMusicToggle(e);
+                    }
+                }, { passive: false });
 
                 musicToggle.addEventListener('touchcancel', (e) => {
+                    touchStarted = false;
                     musicToggle.style.transform = 'scale(1)';
-                });
-
-                // Reset scale after touch
-                musicToggle.addEventListener('touchend', (e) => {
-                    setTimeout(() => {
-                        musicToggle.style.transform = 'scale(1)';
-                    }, 100);
                 });
 
                 // Initialize with play state
@@ -1047,29 +1131,65 @@
                     // Load mood-appropriate music parameters
                     await this.loadMoodBasedMusic(currentMood);
 
-                    // Create or get existing audio context
+                    // Enhanced mobile AudioContext creation and handling
                     if (!this.audioContext) {
-                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        // Create AudioContext with mobile-specific considerations
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        if (!AudioContextClass) {
+                            throw new Error('Web Audio API is not supported on this device.');
+                        }
+                        
+                        this.audioContext = new AudioContextClass({
+                            latencyHint: 'interactive',
+                            sampleRate: 44100
+                        });
                         console.log('Created new AudioContext, state:', this.audioContext.state);
                     }
 
-                    // Handle suspended audio context (common on mobile)
+                    // Mobile requires user interaction before audio can play
                     if (this.audioContext.state === 'suspended') {
                         console.log('Resuming suspended AudioContext...');
                         await this.audioContext.resume();
                         console.log('AudioContext resumed, new state:', this.audioContext.state);
+                        
+                        // Wait a bit for mobile browsers to properly initialize
+                        await new Promise(resolve => setTimeout(resolve, 100));
                     }
 
-                    // Double-check that audio context is running
-                    if (this.audioContext.state !== 'running') {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        if (this.audioContext.state === 'suspended') {
+                    // Additional attempts for stubborn mobile browsers
+                    let attempts = 0;
+                    const maxAttempts = 3;
+                    
+                    while (this.audioContext.state !== 'running' && attempts < maxAttempts) {
+                        console.log(`Attempt ${attempts + 1} to start AudioContext...`);
+                        
+                        try {
                             await this.audioContext.resume();
+                            await new Promise(resolve => setTimeout(resolve, 200));
+                        } catch (resumeError) {
+                            console.warn('Resume attempt failed:', resumeError);
+                        }
+                        
+                        attempts++;
+                    }
+
+                    if (this.audioContext.state !== 'running') {
+                        // For mobile browsers, try creating a new context
+                        try {
+                            console.log('Creating new AudioContext due to persistent suspension...');
+                            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                            this.audioContext = new AudioContextClass({
+                                latencyHint: 'interactive'
+                            });
+                            await this.audioContext.resume();
+                        } catch (newContextError) {
+                            throw new Error(`AudioContext failed to start. State: ${this.audioContext.state}. This device may have audio restrictions.`);
                         }
                     }
 
+                    // Final check
                     if (this.audioContext.state !== 'running') {
-                        throw new Error(`AudioContext state: ${this.audioContext.state}. Please try tapping the button again.`);
+                        throw new Error(`AudioContext state: ${this.audioContext.state}. Please try tapping the button again, some mobile devices require multiple attempts.`);
                     }
 
                     console.log('AudioContext ready, creating mood music...');
@@ -1088,11 +1208,15 @@
                     
                     let userMessage = 'Could not start mood music. ';
                     if (error.message.includes('AudioContext')) {
-                        userMessage += 'Please try tapping the play button again. Some devices require a second tap to enable audio.';
+                        userMessage += 'Your device requires user interaction to enable audio. Please try tapping the button again.';
+                    } else if (error.message.includes('not supported')) {
+                        userMessage += 'Audio playback is not supported on this device/browser. Try using Chrome on Android or Safari on iOS.';
                     } else if (error.name === 'NotAllowedError') {
-                        userMessage += 'Audio playback was blocked. Please enable audio in your browser settings.';
+                        userMessage += 'Audio playback was blocked. Please enable audio permissions in your browser settings.';
                     } else if (error.name === 'NotSupportedError') {
-                        userMessage += 'Audio playback is not supported on this device/browser.';
+                        userMessage += 'Web Audio API is not supported on this device/browser.';
+                    } else if (error.message.includes('audio restrictions')) {
+                        userMessage += 'This device has audio restrictions. Try adjusting your device audio settings or using headphones.';
                     } else {
                         userMessage += `Error: ${error.message}`;
                     }
@@ -1194,9 +1318,9 @@ Format as concise parameters for audio generation.`
                 const musicLabel = document.getElementById('musicLabel');
 
                 if (state === 'play') {
-                    // Play state styling
-                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600 flex flex-col items-center space-y-1';
-                    musicToggle.title = 'Play mood music';
+                    // Play state styling - Green gradient
+                    musicToggle.className = 'touch-target p-3 sm:p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl sm:rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2';
+                    musicToggle.title = 'Play mood-based music';
                     
                     // Play icon
                     musicIcon.innerHTML = `
@@ -1205,11 +1329,11 @@ Format as concise parameters for audio generation.`
                     
                     if (musicLabel) {
                         musicLabel.textContent = 'Play Music';
-                        musicLabel.className = 'text-xs font-medium text-gray-600 dark:text-gray-400';
+                        musicLabel.className = 'text-sm font-medium hidden sm:inline text-white';
                     }
                 } else {
-                    // Pause state styling
-                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-green-500 dark:bg-green-600 text-white rounded-xl sm:rounded-2xl hover:bg-green-600 dark:hover:bg-green-700 transition-all duration-200 shadow-lg border border-green-400 dark:border-green-500 flex flex-col items-center space-y-1';
+                    // Pause state styling - Brighter green with animation
+                    musicToggle.className = 'touch-target p-3 sm:p-4 bg-gradient-to-r from-emerald-400 to-green-500 text-white rounded-xl sm:rounded-2xl hover:from-emerald-500 hover:to-green-600 transition-all duration-200 shadow-xl animate-pulse flex items-center space-x-2';
                     musicToggle.title = 'Pause mood music';
                     
                     // Pause icon
@@ -1220,7 +1344,7 @@ Format as concise parameters for audio generation.`
                     if (musicLabel) {
                         const currentMoodName = this.currentMoodMusic !== null ? this.moodLabels[this.currentMoodMusic] : 'Mood';
                         musicLabel.textContent = `${currentMoodName} Music`;
-                        musicLabel.className = 'text-xs font-medium text-white';
+                        musicLabel.className = 'text-sm font-medium hidden sm:inline text-white';
                     }
                 }
             }
