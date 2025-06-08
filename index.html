@@ -151,8 +151,19 @@
 
         <!-- Header with Date and User Info -->
         <div class="flex flex-col sm:flex-row sm:items-start justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
-            <!-- Date and Welcome on mobile, side by side on desktop -->
-            <div class="flex flex-col sm:flex-row sm:items-start sm:space-x-8 flex-1">
+            <!-- Left side: Music Control and Date -->
+            <div class="flex flex-col sm:flex-row sm:items-start sm:space-x-4 flex-1">
+                <!-- Music Control - Left Corner -->
+                <div class="mb-4 sm:mb-0">
+                    <button id="musicToggle" class="touch-target p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm flex items-center space-x-2" title="Play ambient music">
+                        <svg id="musicIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- Play icon (default state) -->
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
+                        </svg>
+                        <span id="musicLabel" class="text-sm font-medium text-gray-600 dark:text-gray-400">Play Music</span>
+                    </button>
+                </div>
+                
                 <!-- Date -->
                 <div class="text-left">
                     <div class="text-gray-600 dark:text-gray-400 text-sm mb-1" id="currentDay"></div>
@@ -167,15 +178,6 @@
             
             <!-- Controls -->
             <div class="flex space-x-2 sm:space-x-3 justify-end sm:justify-start">
-                <!-- Music Control -->
-                <button id="musicToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm flex flex-col items-center space-y-1" title="Play ambient music">
-                    <svg id="musicIcon" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <!-- Play icon (default state) -->
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
-                    </svg>
-                    <span id="musicLabel" class="text-xs font-medium text-gray-600 dark:text-gray-400 hidden sm:block">Music</span>
-                </button>
-                
                 <button id="darkModeToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm">
                     <svg id="darkModeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <!-- Sun icon (light mode) -->
@@ -990,6 +992,11 @@
                 // Enhanced mobile and desktop event handling
                 const handleMusicToggle = async (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Disable button temporarily to prevent double-clicks
+                    musicToggle.disabled = true;
+                    musicToggle.style.opacity = '0.7';
                     
                     try {
                         if (this.isPlaying) {
@@ -999,37 +1006,73 @@
                         }
                     } catch (error) {
                         console.error('Music toggle error:', error);
-                        alert('Audio not available. Please try again or check your device audio settings.');
+                        alert('Audio not available. Please check your device audio settings and try again.');
+                    } finally {
+                        // Re-enable button
+                        setTimeout(() => {
+                            musicToggle.disabled = false;
+                            musicToggle.style.opacity = '1';
+                        }, 500);
                     }
                 };
                 
-                // Add both click and touch events for maximum mobile compatibility
-                musicToggle.addEventListener('click', handleMusicToggle);
-                musicToggle.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    handleMusicToggle(e);
-                });
+                // Mobile-first event handling
+                let touchStarted = false;
                 
-                // Prevent double-firing on mobile
+                // Touch events for mobile
                 musicToggle.addEventListener('touchstart', (e) => {
                     e.preventDefault();
+                    touchStarted = true;
                     // Visual feedback on touch
                     musicToggle.style.transform = 'scale(0.95)';
+                    console.log('Touch start detected');
                 });
                 
-                musicToggle.addEventListener('touchcancel', (e) => {
-                    musicToggle.style.transform = 'scale(1)';
-                });
-                
-                // Reset scale after touch
                 musicToggle.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (touchStarted) {
+                        console.log('Touch end detected, triggering music toggle');
+                        handleMusicToggle(e);
+                        touchStarted = false;
+                    }
+                    
+                    // Reset visual feedback
                     setTimeout(() => {
                         musicToggle.style.transform = 'scale(1)';
                     }, 100);
                 });
                 
+                musicToggle.addEventListener('touchcancel', (e) => {
+                    touchStarted = false;
+                    musicToggle.style.transform = 'scale(1)';
+                });
+                
+                // Mouse events for desktop (only if no touch)
+                musicToggle.addEventListener('click', (e) => {
+                    // Only handle click if touch wasn't used
+                    if (!touchStarted) {
+                        console.log('Click detected (non-touch)');
+                        handleMusicToggle(e);
+                    }
+                });
+                
+                // Prevent context menu on long press
+                musicToggle.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                });
+                
                 // Initialize with play state
                 this.updateMusicButton('play');
+                
+                // Add mobile-specific styling
+                if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                    musicToggle.style.webkitTapHighlightColor = 'transparent';
+                    musicToggle.style.webkitTouchCallout = 'none';
+                    musicToggle.style.webkitUserSelect = 'none';
+                    console.log('Mobile device detected, optimized touch handling enabled');
+                }
             }
 
             async loadMusicTracks() {
@@ -1134,27 +1177,49 @@ Make each track distinctly different while maintaining calming qualities.`
                 try {
                     console.log('Starting ambient music...');
 
-                    // Create or get existing audio context
+                    // Create or get existing audio context with mobile compatibility
                     if (!this.audioContext) {
-                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        // Use webkit prefix for older mobile browsers
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        this.audioContext = new AudioContextClass({
+                            latencyHint: 'interactive',
+                            sampleRate: 44100
+                        });
+                        console.log('Created new AudioContext for mobile, state:', this.audioContext.state);
                     }
 
-                    // Handle suspended audio context (common on mobile)
-                    if (this.audioContext.state === 'suspended') {
-                        await this.audioContext.resume();
-                    }
-
-                    // Check if audio context is running
-                    if (this.audioContext.state !== 'running') {
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                    // More aggressive audio context resuming for mobile
+                    let resumeAttempts = 0;
+                    const maxResumeAttempts = 5;
+                    
+                    while (this.audioContext.state !== 'running' && resumeAttempts < maxResumeAttempts) {
+                        console.log(`Attempt ${resumeAttempts + 1} to resume AudioContext, current state:`, this.audioContext.state);
+                        
                         if (this.audioContext.state === 'suspended') {
                             await this.audioContext.resume();
+                            console.log('AudioContext resumed, new state:', this.audioContext.state);
+                        }
+                        
+                        // Wait a bit and check again
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        resumeAttempts++;
+                    }
+
+                    // Final check for mobile browsers
+                    if (this.audioContext.state !== 'running') {
+                        // Try one more time with user gesture
+                        console.log('Final attempt to start AudioContext...');
+                        await this.audioContext.resume();
+                        
+                        // Small delay for mobile browsers
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                        
+                        if (this.audioContext.state !== 'running') {
+                            throw new Error(`AudioContext failed to start. State: ${this.audioContext.state}. On mobile devices, try tapping the button again.`);
                         }
                     }
 
-                    if (this.audioContext.state !== 'running') {
-                        throw new Error(`AudioContext state: ${this.audioContext.state}. Please try again.`);
-                    }
+                    console.log('AudioContext successfully running');
 
                     // Get current track or start with first track
                     const currentTrack = this.musicTracks[this.currentTrackIndex] || this.getDefaultMusicTracks()[0];
@@ -1178,7 +1243,20 @@ Make each track distinctly different while maintaining calming qualities.`
 
                 } catch (error) {
                     console.error('Error starting music:', error);
-                    alert('Could not start ambient music. Please try again.');
+                    
+                    // Mobile-specific error messages
+                    let userMessage = 'Could not start ambient music. ';
+                    if (error.message.includes('AudioContext')) {
+                        userMessage += 'On mobile devices, you may need to tap the button twice. This is a browser security feature.';
+                    } else if (error.name === 'NotAllowedError') {
+                        userMessage += 'Audio was blocked by your browser. Please check your audio settings and try again.';
+                    } else if (error.name === 'NotSupportedError') {
+                        userMessage += 'Audio playback is not supported on this device/browser.';
+                    } else {
+                        userMessage += 'Please try again. If the issue persists, check your device volume and audio settings.';
+                    }
+                    
+                    alert(userMessage);
                     this.updateMusicButton('play');
                 }
             }
@@ -1255,7 +1333,7 @@ Make each track distinctly different while maintaining calming qualities.`
 
                 if (state === 'play') {
                     // Play state styling
-                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 shadow-sm flex flex-col items-center space-y-1';
+                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 shadow-sm flex items-center space-x-2';
                     musicToggle.title = 'Play ambient music';
                     
                     // Play icon
@@ -1264,12 +1342,12 @@ Make each track distinctly different while maintaining calming qualities.`
                     `;
                     
                     if (musicLabel) {
-                        musicLabel.textContent = 'Music';
-                        musicLabel.className = 'text-xs font-medium text-gray-600 dark:text-gray-400 hidden sm:block';
+                        musicLabel.textContent = 'Play Music';
+                        musicLabel.className = 'text-sm font-medium text-gray-600 dark:text-gray-400';
                     }
                 } else {
                     // Playing state styling
-                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-green-500 dark:bg-green-600 text-white rounded-xl sm:rounded-2xl hover:bg-green-600 dark:hover:bg-green-700 transition-all duration-200 shadow-lg flex flex-col items-center space-y-1';
+                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-green-500 dark:bg-green-600 text-white rounded-xl sm:rounded-2xl hover:bg-green-600 dark:hover:bg-green-700 transition-all duration-200 shadow-lg flex items-center space-x-2';
                     musicToggle.title = 'Pause ambient music';
                     
                     // Pause icon
@@ -1279,7 +1357,7 @@ Make each track distinctly different while maintaining calming qualities.`
                     
                     if (musicLabel) {
                         musicLabel.textContent = 'Playing';
-                        musicLabel.className = 'text-xs font-medium text-white hidden sm:block';
+                        musicLabel.className = 'text-sm font-medium text-white';
                     }
                 }
             }
@@ -1304,40 +1382,44 @@ Make each track distinctly different while maintaining calming qualities.`
             createNatureSounds(audioContext, track) {
                 // Create nature-inspired ambient sounds
                 const createNatureTexture = () => {
-                    if (!this.isPlaying) return;
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
                     
-                    const bufferSize = 4096;
-                    const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-                    const output = buffer.getChannelData(0);
-                    
-                    for (let i = 0; i < bufferSize; i++) {
-                        output[i] = (Math.random() * 2 - 1) * 0.03;
-                    }
-                    
-                    const noise = audioContext.createBufferSource();
-                    const gainNode = audioContext.createGain();
-                    const filter = audioContext.createBiquadFilter();
-                    
-                    noise.buffer = buffer;
-                    filter.type = 'bandpass';
-                    filter.frequency.setValueAtTime(300 + Math.random() * 400, audioContext.currentTime);
-                    filter.Q.setValueAtTime(0.5, audioContext.currentTime);
-                    
-                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(0.005, audioContext.currentTime + 2);
-                    gainNode.gain.linearRampToValueAtTime(0.002, audioContext.currentTime + 10);
-                    
-                    noise.connect(filter);
-                    filter.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    noise.gainNode = gainNode; // For fade out
-                    noise.start();
-                    noise.stop(audioContext.currentTime + 10);
-                    this.oscillators.push(noise);
-                    
-                    if (this.isPlaying) {
-                        setTimeout(createNatureTexture, 8000 + Math.random() * 4000);
+                    try {
+                        const bufferSize = 4096;
+                        const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                        const output = buffer.getChannelData(0);
+                        
+                        for (let i = 0; i < bufferSize; i++) {
+                            output[i] = (Math.random() * 2 - 1) * 0.03;
+                        }
+                        
+                        const noise = audioContext.createBufferSource();
+                        const gainNode = audioContext.createGain();
+                        const filter = audioContext.createBiquadFilter();
+                        
+                        noise.buffer = buffer;
+                        filter.type = 'bandpass';
+                        filter.frequency.setValueAtTime(300 + Math.random() * 400, audioContext.currentTime);
+                        filter.Q.setValueAtTime(0.5, audioContext.currentTime);
+                        
+                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                        gainNode.gain.linearRampToValueAtTime(0.008, audioContext.currentTime + 2); // Slightly louder for mobile
+                        gainNode.gain.linearRampToValueAtTime(0.003, audioContext.currentTime + 10);
+                        
+                        noise.connect(filter);
+                        filter.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        noise.gainNode = gainNode; // For fade out
+                        noise.start(audioContext.currentTime);
+                        noise.stop(audioContext.currentTime + 10);
+                        this.oscillators.push(noise);
+                        
+                        if (this.isPlaying && audioContext.state === 'running') {
+                            setTimeout(createNatureTexture, 8000 + Math.random() * 4000);
+                        }
+                    } catch (error) {
+                        console.error('Error in createNatureSounds:', error);
                     }
                 };
                 
@@ -1350,35 +1432,39 @@ Make each track distinctly different while maintaining calming qualities.`
                 let noteIndex = 0;
                 
                 const playPianoNote = () => {
-                    if (!this.isPlaying) return;
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
                     
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    const filter = audioContext.createBiquadFilter();
-                    
-                    oscillator.type = 'triangle';
-                    oscillator.frequency.setValueAtTime(pianoNotes[noteIndex], audioContext.currentTime);
-                    
-                    filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(1000, audioContext.currentTime);
-                    
-                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 3);
-                    
-                    oscillator.connect(filter);
-                    filter.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    oscillator.gainNode = gainNode;
-                    oscillator.start();
-                    oscillator.stop(audioContext.currentTime + 3);
-                    this.oscillators.push(oscillator);
-                    
-                    noteIndex = (noteIndex + 1) % pianoNotes.length;
-                    
-                    if (this.isPlaying) {
-                        setTimeout(playPianoNote, 2000 + Math.random() * 3000);
+                    try {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        const filter = audioContext.createBiquadFilter();
+                        
+                        oscillator.type = 'triangle';
+                        oscillator.frequency.setValueAtTime(pianoNotes[noteIndex], audioContext.currentTime);
+                        
+                        filter.type = 'lowpass';
+                        filter.frequency.setValueAtTime(1000, audioContext.currentTime);
+                        
+                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                        gainNode.gain.linearRampToValueAtTime(0.015, audioContext.currentTime + 0.1); // Slightly louder
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 3);
+                        
+                        oscillator.connect(filter);
+                        filter.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.gainNode = gainNode;
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 3);
+                        this.oscillators.push(oscillator);
+                        
+                        noteIndex = (noteIndex + 1) % pianoNotes.length;
+                        
+                        if (this.isPlaying && audioContext.state === 'running') {
+                            setTimeout(playPianoNote, 2000 + Math.random() * 3000);
+                        }
+                    } catch (error) {
+                        console.error('Error in createPianoAmbient:', error);
                     }
                 };
                 
@@ -1390,28 +1476,32 @@ Make each track distinctly different while maintaining calming qualities.`
                 const padFreqs = [65, 73, 82, 98]; // Low frequencies for pads
                 
                 padFreqs.forEach((freq, i) => {
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    const filter = audioContext.createBiquadFilter();
-                    
-                    oscillator.type = 'sawtooth';
-                    oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-                    oscillator.detune.setValueAtTime((Math.random() - 0.5) * 5, audioContext.currentTime);
-                    
-                    filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(400, audioContext.currentTime);
-                    filter.Q.setValueAtTime(1, audioContext.currentTime);
-                    
-                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(0.008, audioContext.currentTime + 3);
-                    
-                    oscillator.connect(filter);
-                    filter.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    oscillator.gainNode = gainNode;
-                    oscillator.start();
-                    this.oscillators.push(oscillator);
+                    try {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        const filter = audioContext.createBiquadFilter();
+                        
+                        oscillator.type = 'sawtooth';
+                        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                        oscillator.detune.setValueAtTime((Math.random() - 0.5) * 5, audioContext.currentTime);
+                        
+                        filter.type = 'lowpass';
+                        filter.frequency.setValueAtTime(400, audioContext.currentTime);
+                        filter.Q.setValueAtTime(1, audioContext.currentTime);
+                        
+                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                        gainNode.gain.linearRampToValueAtTime(0.012, audioContext.currentTime + 3); // Slightly louder
+                        
+                        oscillator.connect(filter);
+                        filter.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.gainNode = gainNode;
+                        oscillator.start(audioContext.currentTime);
+                        this.oscillators.push(oscillator);
+                    } catch (error) {
+                        console.error('Error in createElectronicPads:', error);
+                    }
                 });
             }
 
