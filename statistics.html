@@ -138,8 +138,8 @@
                 this.moods = this.loadMoods();
                 this.habits = this.loadHabits();
                 this.tasks = this.loadTasks();
-                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Happy', 'Content', 'Excited'];
-                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😄', '😌', '🤩'];
+                this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Neutral', 'Happy', 'Content', 'Excited'];
+                this.moodEmojis = ['😭', '😡', '🫤', '😨', '😐', '😄', '😌', '🤩'];
                 this.init();
             }
 
@@ -165,6 +165,18 @@
                 if (isDarkMode) {
                     document.documentElement.classList.add('dark');
                 }
+            }
+
+            bindEvents() {
+                document.getElementById('backBtn').addEventListener('click', () => {
+                    window.location.href = 'index.html';
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        window.location.href = 'index.html';
+                    }
+                });
             }
 
             // ... existing methods remain the same ...

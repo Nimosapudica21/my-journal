@@ -495,11 +495,11 @@
                 const recordingStatus = document.getElementById('recordingStatus');
 
                 if (this.isRecording) {
-                    recordBtn.className = 'px-6 py-3 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors font-medium flex items-center space-x-2';
+                    recordBtn.className = 'touch-target px-4 sm:px-6 py-3 bg-gray-600 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial';
                     recordBtnText.textContent = 'Stop Recording';
                     recordingStatus.classList.remove('hidden');
                 } else {
-                    recordBtn.className = 'px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center space-x-2';
+                    recordBtn.className = 'touch-target px-4 sm:px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-xl hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial';
                     recordBtnText.textContent = 'Start Recording';
                     recordingStatus.classList.add('hidden');
                 }

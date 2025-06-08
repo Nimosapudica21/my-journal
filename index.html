@@ -518,24 +518,30 @@
                                 parts: [{
                                     text: `Generate a beautiful, inspiring, and philosophical thought for today (${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}). 
                                     
+                                    Choose from these options:
+                                    1. A famous inspirational quote with the actual author's name
+                                    2. A philosophical thought from a well-known philosopher with their name
+                                    3. A wisdom saying with cultural attribution (e.g., "Ancient Proverb", "Buddhist Wisdom", "Sufi Teaching")
+                                    4. A motivational insight from a historical figure with their name
+                                    
                                     The thought should:
                                     - Be uplifting and set a positive tone for the day
-                                    - Be philosophical or wisdom-based
+                                    - Be thought-provoking or wisdom-based
                                     - Be 1-2 sentences long
-                                    - Include insights about life, growth, mindfulness, or human nature
-                                    - Be universal and relatable
-                                    - Have a contemplative quality
+                                    - Include insights about life, growth, mindfulness, purpose, or human potential
+                                    - Be relatable and meaningful
+                                    - Have depth and contemplative quality
                                     
-                                    Also include the author if it's a famous quote, or mark it as "Ancient Wisdom" or "Reflection" if it's general wisdom.
+                                    Please provide a real quote or wisdom saying with accurate attribution.
                                     
-                                    Format your response as:
-                                    **Quote:** [the inspiring thought]
-                                    **Author:** [author name or "Ancient Wisdom"]`
+                                    Format your response exactly as:
+                                    QUOTE: [the inspiring thought/quote]
+                                    AUTHOR: [real author name, philosopher, or cultural source like "Ancient Proverb"]`
                                 }]
                             }],
                             generationConfig: {
                                 temperature: 0.8,
-                                maxOutputTokens: 200,
+                                maxOutputTokens: 250,
                             }
                         })
                     });
@@ -548,12 +554,12 @@
                     const thoughtText = data.candidates[0].content.parts[0].text;
                     
                     // Parse the response
-                    const quoteMatch = thoughtText.match(/\*\*Quote:\*\*\s*(.+?)(?:\n|\*\*)/);
-                    const authorMatch = thoughtText.match(/\*\*Author:\*\*\s*(.+?)(?:\n|$)/);
+                    const quoteMatch = thoughtText.match(/QUOTE:\s*(.+?)(?:\n|AUTHOR:)/s);
+                    const authorMatch = thoughtText.match(/AUTHOR:\s*(.+?)(?:\n|$)/s);
                     
                     const thought = {
                         quote: quoteMatch ? quoteMatch[1].trim() : "Every day is a new opportunity to grow and become the person you aspire to be.",
-                        author: authorMatch ? authorMatch[1].trim() : "Reflection"
+                        author: authorMatch ? authorMatch[1].trim() : "Daily Reflection"
                     };
 
                     // Cache the thought for today
@@ -564,8 +570,8 @@
                     console.error('Error fetching thought of the day:', error);
                     // Fallback thought
                     const fallbackThought = {
-                        quote: "Every day is a new opportunity to grow and become the person you aspire to be.",
-                        author: "Reflection"
+                        quote: "The journey of a thousand miles begins with a single step.",
+                        author: "Lao Tzu"
                     };
                     this.displayThought(fallbackThought);
                 }
