@@ -738,13 +738,31 @@
                     const preview = content.length > 80 ? content.substring(0, 80) + '...' : content;
                     
                     return `
-                        <div class="p-3 sm:p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl sm:rounded-2xl cursor-pointer hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200 border border-gray-200/50 dark:border-gray-600/50 touch-target"
-                             onclick="window.location.href='journal.html?date=${entry.date}'">
-                            ${summary ? `<div class="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">${summary}</div>` : ''}
-                            <div class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${preview}</div>
+                        <div class="p-3 sm:p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-600/50 touch-target group hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1 cursor-pointer" onclick="window.location.href='journal.html?date=${entry.date}'">
+                                    ${summary ? `<div class="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">${summary}</div>` : ''}
+                                    <div class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${preview}</div>
+                                </div>
+                                <button onclick="app.deleteEntry('${entry.date}')" 
+                                        class="ml-3 p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                                        title="Delete entry">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     `;
                 }).join('');
+            }
+
+            deleteEntry(date) {
+                if (confirm('Are you sure you want to delete this journal entry? This action cannot be undone.')) {
+                    delete this.entries[date];
+                    localStorage.setItem('journalEntries', JSON.stringify(this.entries));
+                    this.renderJournalEntries(); // Re-render to update the display
+                }
             }
 
             renderTasks() {

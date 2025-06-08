@@ -51,13 +51,20 @@
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                Back to Home
+                Home
             </button>
             <div class="text-center">
                 <h1 class="text-2xl sm:text-3xl font-light text-gray-800 dark:text-gray-100">Journal Entry</h1>
                 <p class="text-gray-600 dark:text-gray-400 text-sm" id="entryDate"></p>
             </div>
-            <div class="hidden sm:block w-32"></div>
+            <div class="flex items-center space-x-3">
+                <!-- Music Control -->
+                <button id="musicToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm" title="Toggle calming sounds">
+                    <svg id="musicIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <!-- Mood Display (if available) -->
@@ -139,8 +146,8 @@
                             <li>• Speak naturally in any language - AI will automatically detect it</li>
                             <li>• Your speech will be transcribed exactly as spoken</li>
                             <li>• Translations provided if speaking in non-English languages</li>
-                            <li>• Sentiment is tracked for personalized future journal prompts</li>
-                            <li>• No extra formatting - just your authentic voice in text</li>
+                            <li>• Perfect for quick voice journaling or when typing is inconvenient</li>
+                            <li>• Just pure transcription - your authentic voice in text</li>
                         </ul>
                     </div>
                 </div>
@@ -191,13 +198,17 @@
         <div class="h-4 sm:h-0"></div>
     </div>
 
+    <!-- Hidden Audio Element -->
+    <audio id="backgroundMusic" loop preload="auto" style="display: none;">
+        <source src="https://www.soundjay.com/misc/sounds-of-nature/rain-02.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         class JournalEntry {
             constructor() {
                 this.currentDate = this.getDateFromURL() || new Date().toISOString().split('T')[0];
                 this.entries = this.loadEntries();
                 this.moods = this.loadMoods();
-                this.sentiments = this.loadSentiments();
                 this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Neutral', 'Happy', 'Content', 'Excited'];
                 this.moodEmojis = ['😭', '😡', '🫤', '😨', '😐', '😄', '😌', '🤩'];
                 this.autoSaveTimer = null;
@@ -218,10 +229,10 @@
                 this.setupDateDisplay();
                 this.loadExistingEntry();
                 this.displayMood();
-                this.showPreviousSentiment();
                 this.bindEvents();
                 this.setupVoiceRecording();
                 this.setupMobileOptimizations();
+                this.setupMusicPlayer();
                 document.getElementById('entryContent').focus();
             }
 
@@ -270,29 +281,9 @@
                 }
             }
 
-            showPreviousSentiment() {
-                const entryContent = document.getElementById('entryContent');
-                const existingEntry = this.entries[this.currentDate];
-                
-                // Only show previous sentiment if this is a new entry
-                if (!existingEntry || existingEntry.trim() === '') {
-                    const yesterday = new Date(this.currentDate);
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    const yesterdayDate = yesterday.toISOString().split('T')[0];
-                    
-                    const previousSentiment = this.sentiments[yesterdayDate];
-                    
-                    if (previousSentiment) {
-                        const welcomeText = `You were feeling ${previousSentiment.toLowerCase()} last time you were here. How is your day today?\n\n`;
-                        entryContent.value = welcomeText;
-                        // Position cursor at the end
-                        entryContent.setSelectionRange(welcomeText.length, welcomeText.length);
-                    }
-                }
-            }
-
             bindEvents() {
-                document.getElementById('backBtn').addEventListener('click', () => {
+                document.getElementById('backBtn').addEventListener('click', (e) => {
+                    this.autoSaveBeforeLeaving();
                     window.location.href = 'index.html';
                 });
 
@@ -317,9 +308,15 @@
                 document.getElementById('entryContent').addEventListener('input', autoSave);
                 document.getElementById('entrySummary').addEventListener('input', autoSave);
 
+                // Auto-save when leaving the page
+                window.addEventListener('beforeunload', (e) => {
+                    this.autoSaveBeforeLeaving();
+                });
+
                 // Keyboard shortcuts
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
+                        this.autoSaveBeforeLeaving();
                         window.location.href = 'index.html';
                     }
                     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -327,6 +324,27 @@
                         this.saveEntry();
                     }
                 });
+            }
+
+            autoSaveBeforeLeaving() {
+                const summary = document.getElementById('entrySummary').value.trim();
+                const content = document.getElementById('entryContent').value.trim();
+
+                // Only auto-save if there's actual content
+                if (content && content.length > 0) {
+                    let finalEntry = '';
+                    if (summary) {
+                        finalEntry = `**Summary:** ${summary}\n\n${content}`;
+                    } else {
+                        finalEntry = content;
+                    }
+
+                    this.entries[this.currentDate] = finalEntry;
+                    this.saveEntries();
+                    
+                    // Remove any draft since we saved the actual entry
+                    this.removeDraft();
+                }
             }
 
             setupVoiceRecording() {
@@ -376,6 +394,92 @@
                         document.documentElement.style.setProperty('--vh', `${vh}px`);
                     });
                 }
+            }
+
+            setupMusicPlayer() {
+                const musicToggle = document.getElementById('musicToggle');
+                const musicIcon = document.getElementById('musicIcon');
+                let isPlaying = false;
+                let audioContext = null;
+                let gainNode = null;
+                let oscillators = [];
+
+                musicToggle.addEventListener('click', async () => {
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+
+                    if (isPlaying) {
+                        // Stop music
+                        oscillators.forEach(osc => {
+                            osc.stop();
+                        });
+                        oscillators = [];
+                        isPlaying = false;
+                        musicIcon.innerHTML = `
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        `;
+                        musicToggle.title = "Play calming sounds";
+                    } else {
+                        // Start music
+                        if (audioContext.state === 'suspended') {
+                            await audioContext.resume();
+                        }
+
+                        // Create gentle ambient sounds
+                        this.createAmbientSound(audioContext);
+                        isPlaying = true;
+                        musicIcon.innerHTML = `
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                        `;
+                        musicToggle.title = "Mute sounds";
+                    }
+                });
+
+                this.audioContext = audioContext;
+                this.oscillators = oscillators;
+            }
+
+            createAmbientSound(audioContext) {
+                // Create a gentle pad sound with multiple oscillators
+                const frequencies = [220, 330, 440, 550]; // Gentle harmonic frequencies
+                
+                frequencies.forEach((freq, index) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    const filter = audioContext.createBiquadFilter();
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                    
+                    // Add slight detuning for richness
+                    oscillator.detune.setValueAtTime((Math.random() - 0.5) * 10, audioContext.currentTime);
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(800, audioContext.currentTime);
+                    filter.Q.setValueAtTime(1, audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.02 / frequencies.length, audioContext.currentTime + 2);
+                    
+                    oscillator.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    this.oscillators.push(oscillator);
+                    
+                    // Add slow frequency modulation for movement
+                    const lfo = audioContext.createOscillator();
+                    const lfoGain = audioContext.createGain();
+                    lfo.frequency.setValueAtTime(0.1 + Math.random() * 0.1, audioContext.currentTime);
+                    lfoGain.gain.setValueAtTime(2, audioContext.currentTime);
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(oscillator.frequency);
+                    lfo.start();
+                    this.oscillators.push(lfo);
+                });
             }
 
             async startRecording() {
@@ -540,19 +644,16 @@
                             contents: [{
                                 parts: [
                                     {
-                                        text: `You are a voice transcription assistant for a personal journal app. Please:
+                                        text: `You are a transcription assistant. Please transcribe the audio exactly as spoken. 
 
-1. Automatically detect the language being spoken
-2. Transcribe the audio accurately in the original language
-3. If the language is not English, also provide an English translation
-4. Analyze the sentiment/emotion (Happy, Sad, Anxious, Excited, Neutral, Content, Frustrated, Confused, etc.)
+- If the audio is in English, just provide the transcription
+- If the audio is in another language, provide both the original transcription and English translation
+- Keep it natural and exactly as the person spoke
+- Do not add any commentary, analysis, or extra formatting
 
-Please format your response as:
-TRANSCRIPTION: [exact transcription in original language]
-TRANSLATION: [English translation if needed, otherwise write "N/A"]
-SENTIMENT: [one word emotion]
-
-Keep the transcription natural and exactly as spoken. Do not add extra formatting or editorial content.`
+Format your response as:
+TRANSCRIPTION: [exactly what was said]
+TRANSLATION: [English translation if needed, otherwise "N/A"]`
                                     },
                                     {
                                         inline_data: {
@@ -563,8 +664,8 @@ Keep the transcription natural and exactly as spoken. Do not add extra formattin
                                 ]
                             }],
                             generationConfig: {
-                                temperature: 0.3,
-                                maxOutputTokens: 500,
+                                temperature: 0.1,
+                                maxOutputTokens: 300,
                             }
                         })
                     });
@@ -585,20 +686,15 @@ Keep the transcription natural and exactly as spoken. Do not add extra formattin
                     
                     // Parse the response
                     const transcriptionMatch = aiResponse.match(/TRANSCRIPTION:\s*(.+?)(?:\n|TRANSLATION:)/s);
-                    const translationMatch = aiResponse.match(/TRANSLATION:\s*(.+?)(?:\n|SENTIMENT:)/s);
-                    const sentimentMatch = aiResponse.match(/SENTIMENT:\s*(.+?)(?:\n|$)/s);
+                    const translationMatch = aiResponse.match(/TRANSLATION:\s*(.+?)(?:\n|$)/s);
                     
                     const transcription = transcriptionMatch ? transcriptionMatch[1].trim() : 'Could not transcribe audio';
                     const translation = translationMatch ? translationMatch[1].trim() : '';
-                    const sentiment = sentimentMatch ? sentimentMatch[1].trim() : 'Neutral';
-                    
-                    // Store sentiment for next journal entry
-                    this.saveSentiment(sentiment);
                     
                     // Add transcription to journal entry
                     let finalText = transcription;
                     if (translation && translation !== 'N/A' && translation.toLowerCase() !== transcription.toLowerCase()) {
-                        finalText += `\n\n[Translation: ${translation}]`;
+                        finalText += ` (${translation})`;
                     }
                     
                     this.addVoiceContentToEntry(finalText);
