@@ -137,10 +137,10 @@
                         <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">How it works:</h4>
                         <ul class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
                             <li>• Speak naturally in any language - AI will automatically detect it</li>
-                            <li>• AI will transcribe, translate to English (if needed), and add to your journal</li>
-                            <li>• Includes sentiment analysis and a one-line summary</li>
-                            <li>• Multiple voice entries will be separated automatically</li>
-                            <li>• Works with 100+ languages including major world languages</li>
+                            <li>• Your speech will be transcribed exactly as spoken</li>
+                            <li>• Translations provided if speaking in non-English languages</li>
+                            <li>• Sentiment is tracked for personalized future journal prompts</li>
+                            <li>• No extra formatting - just your authentic voice in text</li>
                         </ul>
                     </div>
                 </div>
@@ -197,6 +197,7 @@
                 this.currentDate = this.getDateFromURL() || new Date().toISOString().split('T')[0];
                 this.entries = this.loadEntries();
                 this.moods = this.loadMoods();
+                this.sentiments = this.loadSentiments();
                 this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Neutral', 'Happy', 'Content', 'Excited'];
                 this.moodEmojis = ['😭', '😡', '🫤', '😨', '😐', '😄', '😌', '🤩'];
                 this.autoSaveTimer = null;
@@ -217,6 +218,7 @@
                 this.setupDateDisplay();
                 this.loadExistingEntry();
                 this.displayMood();
+                this.showPreviousSentiment();
                 this.bindEvents();
                 this.setupVoiceRecording();
                 this.setupMobileOptimizations();
@@ -265,6 +267,27 @@
                     document.getElementById('moodDisplay').classList.remove('hidden');
                     document.getElementById('todayMoodEmoji').textContent = this.moodEmojis[todaysMood];
                     document.getElementById('todayMoodText').textContent = this.moodLabels[todaysMood];
+                }
+            }
+
+            showPreviousSentiment() {
+                const entryContent = document.getElementById('entryContent');
+                const existingEntry = this.entries[this.currentDate];
+                
+                // Only show previous sentiment if this is a new entry
+                if (!existingEntry || existingEntry.trim() === '') {
+                    const yesterday = new Date(this.currentDate);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayDate = yesterday.toISOString().split('T')[0];
+                    
+                    const previousSentiment = this.sentiments[yesterdayDate];
+                    
+                    if (previousSentiment) {
+                        const welcomeText = `You were feeling ${previousSentiment.toLowerCase()} last time you were here. How is your day today?\n\n`;
+                        entryContent.value = welcomeText;
+                        // Position cursor at the end
+                        entryContent.setSelectionRange(welcomeText.length, welcomeText.length);
+                    }
                 }
             }
 
@@ -517,23 +540,19 @@
                             contents: [{
                                 parts: [
                                     {
-                                        text: `You are a multilingual voice assistant for a personal journal app. The user has recorded audio in any language. Please:
+                                        text: `You are a voice transcription assistant for a personal journal app. Please:
 
-1. First, automatically detect the language being spoken
-2. Transcribe the audio accurately in the original language 
-3. If the language is not English, translate it to English (if already English, skip translation)
-4. Analyze the sentiment (Happy, Sad, Anxious, Excited, Neutral, Content, Frustrated, Confused, etc.)
-5. Create a one-line summary of the main theme
+1. Automatically detect the language being spoken
+2. Transcribe the audio accurately in the original language
+3. If the language is not English, also provide an English translation
+4. Analyze the sentiment/emotion (Happy, Sad, Anxious, Excited, Neutral, Content, Frustrated, Confused, etc.)
 
 Please format your response as:
-**Language Detected:** [detected language name]
-**Transcription:** [original transcription in the detected language]
-**English Translation:** [English translation - only include if original was not English]
-**Sentiment:** [sentiment analysis]
-**Summary:** [one-line summary]
-**Journal Entry:** [well-formatted English journal entry ready for personal journaling]
+TRANSCRIPTION: [exact transcription in original language]
+TRANSLATION: [English translation if needed, otherwise write "N/A"]
+SENTIMENT: [one word emotion]
 
-Be empathetic and supportive in your responses. Make the journal entry personal and reflective. If you cannot understand the audio clearly, please indicate that in your response.`
+Keep the transcription natural and exactly as spoken. Do not add extra formatting or editorial content.`
                                     },
                                     {
                                         inline_data: {
@@ -544,8 +563,8 @@ Be empathetic and supportive in your responses. Make the journal entry personal 
                                 ]
                             }],
                             generationConfig: {
-                                temperature: 0.7,
-                                maxOutputTokens: 1500,
+                                temperature: 0.3,
+                                maxOutputTokens: 500,
                             }
                         })
                     });
@@ -564,8 +583,25 @@ Be empathetic and supportive in your responses. Make the journal entry personal 
                     const aiResponse = data.candidates[0].content.parts[0].text;
                     console.log('AI Response:', aiResponse);
                     
-                    // Add the AI response to the journal entry
-                    this.addVoiceContentToEntry(aiResponse);
+                    // Parse the response
+                    const transcriptionMatch = aiResponse.match(/TRANSCRIPTION:\s*(.+?)(?:\n|TRANSLATION:)/s);
+                    const translationMatch = aiResponse.match(/TRANSLATION:\s*(.+?)(?:\n|SENTIMENT:)/s);
+                    const sentimentMatch = aiResponse.match(/SENTIMENT:\s*(.+?)(?:\n|$)/s);
+                    
+                    const transcription = transcriptionMatch ? transcriptionMatch[1].trim() : 'Could not transcribe audio';
+                    const translation = translationMatch ? translationMatch[1].trim() : '';
+                    const sentiment = sentimentMatch ? sentimentMatch[1].trim() : 'Neutral';
+                    
+                    // Store sentiment for next journal entry
+                    this.saveSentiment(sentiment);
+                    
+                    // Add transcription to journal entry
+                    let finalText = transcription;
+                    if (translation && translation !== 'N/A' && translation.toLowerCase() !== transcription.toLowerCase()) {
+                        finalText += `\n\n[Translation: ${translation}]`;
+                    }
+                    
+                    this.addVoiceContentToEntry(finalText);
 
                 } catch (error) {
                     console.error('Error processing audio with Gemini:', error);
@@ -590,6 +626,17 @@ Be empathetic and supportive in your responses. Make the journal entry personal 
                 } finally {
                     processingStatus.classList.add('hidden');
                 }
+            }
+
+            saveSentiment(sentiment) {
+                const sentiments = this.loadSentiments();
+                sentiments[this.currentDate] = sentiment;
+                localStorage.setItem('journalSentiments', JSON.stringify(sentiments));
+            }
+
+            loadSentiments() {
+                const stored = localStorage.getItem('journalSentiments');
+                return stored ? JSON.parse(stored) : {};
             }
 
             addVoiceContentToEntry(aiResponse) {
