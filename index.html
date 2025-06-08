@@ -167,6 +167,15 @@
             
             <!-- Controls -->
             <div class="flex space-x-2 sm:space-x-3 justify-end sm:justify-start">
+                <!-- Music Control Button -->
+                <button id="musicToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600 flex flex-col items-center space-y-1" title="Play mood music">
+                    <svg id="musicIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Play icon (default state) -->
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
+                    </svg>
+                    <span id="musicLabel" class="text-xs font-medium text-gray-600 dark:text-gray-400">Play Music</span>
+                </button>
+                
                 <button id="darkModeToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm">
                     <svg id="darkModeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <!-- Sun icon (light mode) -->
@@ -334,6 +343,14 @@
                 this.moodLabels = ['Sad', 'Frustrated', 'Confused', 'Anxious', 'Neutral', 'Happy', 'Content', 'Excited'];
                 this.moodEmojis = ['😭', '😡', '🫤', '😨', '😐', '😄', '😌', '🤩'];
                 this.GEMINI_API_KEY = 'AIzaSyC8dS2r1kLiYlnBVhYhPi1sNSCTFhMJFI8';
+                
+                // Music properties
+                this.isPlaying = false;
+                this.audioContext = null;
+                this.oscillators = [];
+                this.currentMoodMusic = null;
+                this.musicParams = null;
+                
                 this.init();
             }
 
@@ -347,37 +364,43 @@
                 this.initDarkMode();
                 this.setupDateDisplay();
                 this.setupMoodBoard();
-                this.loadTodaysMood();
-                this.renderJournalEntries();
-                this.renderTasks();
-                this.renderHabits();
-                this.renderMoodHistory();
-                this.loadThoughtOfTheDay();
+                this.setupMusicPlayer();
+                this.renderAll();
                 this.bindEvents();
-                this.setupMobileOptimizations();
+                this.loadThoughtOfTheDay();
             }
 
             setupMobileOptimizations() {
                 // Prevent zoom on input focus on iOS
                 if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
                     const viewport = document.querySelector('meta[name="viewport"]');
-                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                    if (viewport) {
+                        viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                    }
                 }
 
-                // Add touch event listeners for better mobile interaction
-                document.querySelectorAll('.mood-emoji').forEach(emoji => {
-                    emoji.addEventListener('touchstart', (e) => {
-                        e.preventDefault(); // Prevent default touch behavior
-                        const moodValue = parseInt(emoji.getAttribute('data-mood'));
-                        document.getElementById('moodSlider').value = moodValue;
-                        this.updateMoodDisplay();
-                    });
+                // Improve scrolling on mobile
+                document.querySelectorAll('textarea, select').forEach(element => {
+                    element.style.webkitOverflowScrolling = 'touch';
                 });
 
-                // Improve touch scrolling
-                document.querySelectorAll('[id$="List"], [id$="Entries"]').forEach(container => {
-                    container.style.webkitOverflowScrolling = 'touch';
-                });
+                // Handle mobile keyboard better
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', () => {
+                        // Adjust layout when mobile keyboard appears
+                        const vh = window.visualViewport.height * 0.01;
+                        document.documentElement.style.setProperty('--vh', `${vh}px`);
+                    });
+                }
+
+                // Add haptic feedback for buttons on supported devices
+                const musicButton = document.getElementById('musicToggle');
+                if (musicButton && 'vibrate' in navigator) {
+                    musicButton.addEventListener('touchstart', () => {
+                        // Small vibration feedback when touching music button
+                        navigator.vibrate && navigator.vibrate(10);
+                    });
+                }
             }
 
             initDarkMode() {
@@ -440,64 +463,99 @@
             }
 
             setupMoodBoard() {
-                const slider = document.getElementById('moodSlider');
-                const updateMoodDisplay = () => {
-                    const value = parseInt(slider.value);
-                    document.getElementById('currentMoodText').textContent = this.moodLabels[value];
-                    
-                    // Update emoji highlighting
-                    document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
-                        emoji.classList.toggle('active', index === value);
-                    });
+                const moodSlider = document.getElementById('moodSlider');
+                const currentMoodText = document.getElementById('currentMoodText');
+                const moodEmojis = document.querySelectorAll('.mood-emoji');
 
-                    // Save mood
-                    this.saveMood(value);
-                };
-
-                slider.addEventListener('input', updateMoodDisplay);
-                
-                // Make emojis clickable for both mouse and touch
-                document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
-                    // Mouse events
-                    emoji.addEventListener('click', () => {
-                        slider.value = index;
-                        updateMoodDisplay();
-                    });
-                    
-                    // Touch events for better mobile experience
-                    emoji.addEventListener('touchend', (e) => {
-                        e.preventDefault(); // Prevent click event from firing
-                        slider.value = index;
-                        updateMoodDisplay();
-                    });
-                });
-
-                updateMoodDisplay();
-            }
-
-            updateMoodDisplay() {
-                const slider = document.getElementById('moodSlider');
-                const value = parseInt(slider.value);
-                document.getElementById('currentMoodText').textContent = this.moodLabels[value];
-                
-                // Update emoji highlighting
-                document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
-                    emoji.classList.toggle('active', index === value);
-                });
-
-                // Save mood
-                this.saveMood(value);
-            }
-
-            loadTodaysMood() {
+                // Load today's mood
                 const todaysMood = this.moods[this.currentDate];
                 if (todaysMood !== undefined) {
-                    document.getElementById('moodSlider').value = todaysMood;
-                    document.getElementById('currentMoodText').textContent = this.moodLabels[todaysMood];
-                    document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
-                        emoji.classList.toggle('active', index === todaysMood);
-                    });
+                    moodSlider.value = todaysMood;
+                    this.updateMoodDisplay(todaysMood);
                 }
+
+                // Slider event
+                moodSlider.addEventListener('input', (e) => {
+                    const moodValue = parseInt(e.target.value);
+                    this.updateMoodDisplay(moodValue);
+                    this.saveMood(moodValue);
+                    // Update music based on new mood if currently playing
+                    if (this.isPlaying) {
+                        this.loadMoodBasedMusic(moodValue);
+                    }
+                });
+
+                // Emoji click events
+                moodEmojis.forEach((emoji, index) => {
+                    emoji.addEventListener('click', () => {
+                        moodSlider.value = index;
+                        this.updateMoodDisplay(index);
+                        this.saveMood(index);
+                        // Update music based on new mood if currently playing
+                        if (this.isPlaying) {
+                            this.loadMoodBasedMusic(index);
+                        }
+                    });
+                });
+            }
+
+            setupMusicPlayer() {
+                const musicToggle = document.getElementById('musicToggle');
+                const musicIcon = document.getElementById('musicIcon');
+                const musicLabel = document.getElementById('musicLabel');
+
+                // Enhanced mobile and desktop event handling
+                const handleMusicToggle = async (e) => {
+                    e.preventDefault(); // Prevent default behaviors
+                    
+                    try {
+                        if (this.isPlaying) {
+                            this.pauseMusic();
+                        } else {
+                            await this.playMoodMusic();
+                        }
+                    } catch (error) {
+                        console.error('Music toggle error:', error);
+                        alert('Audio not available. Please try again or check your device audio settings.');
+                    }
+                };
+
+                // Add both click and touch events for maximum mobile compatibility
+                musicToggle.addEventListener('click', handleMusicToggle);
+                musicToggle.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleMusicToggle(e);
+                });
+
+                // Prevent double-firing on mobile
+                musicToggle.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    // Visual feedback on touch
+                    musicToggle.style.transform = 'scale(0.95)';
+                });
+
+                musicToggle.addEventListener('touchcancel', (e) => {
+                    musicToggle.style.transform = 'scale(1)';
+                });
+
+                // Reset scale after touch
+                musicToggle.addEventListener('touchend', (e) => {
+                    setTimeout(() => {
+                        musicToggle.style.transform = 'scale(1)';
+                    }, 100);
+                });
+
+                // Initialize with play state
+                this.updateMusicButton('play');
+            }
+
+            renderAll() {
+                this.loadTodaysMood();
+                this.renderJournalEntries();
+                this.renderTasks();
+                this.renderHabits();
+                this.renderMoodHistory();
+                this.setupMobileOptimizations();
             }
 
             async loadThoughtOfTheDay() {
@@ -959,6 +1017,537 @@
             loadHabits() {
                 const stored = localStorage.getItem('journalHabits');
                 return stored ? JSON.parse(stored) : { list: [], tracking: {} };
+            }
+
+            // New methods for mood and music integration
+            updateMoodDisplay(moodValue) {
+                document.getElementById('currentMoodText').textContent = this.moodLabels[moodValue];
+                
+                // Update emoji highlighting
+                document.querySelectorAll('.mood-emoji').forEach((emoji, index) => {
+                    emoji.classList.toggle('active', index === moodValue);
+                });
+            }
+
+            loadTodaysMood() {
+                const todaysMood = this.moods[this.currentDate];
+                if (todaysMood !== undefined) {
+                    document.getElementById('moodSlider').value = todaysMood;
+                    this.updateMoodDisplay(todaysMood);
+                }
+            }
+
+            async playMoodMusic() {
+                try {
+                    console.log('Starting mood-based music...');
+
+                    // Get current mood
+                    const currentMood = this.moods[this.currentDate] || 4; // Default to neutral
+                    
+                    // Load mood-appropriate music parameters
+                    await this.loadMoodBasedMusic(currentMood);
+
+                    // Create or get existing audio context
+                    if (!this.audioContext) {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log('Created new AudioContext, state:', this.audioContext.state);
+                    }
+
+                    // Handle suspended audio context (common on mobile)
+                    if (this.audioContext.state === 'suspended') {
+                        console.log('Resuming suspended AudioContext...');
+                        await this.audioContext.resume();
+                        console.log('AudioContext resumed, new state:', this.audioContext.state);
+                    }
+
+                    // Double-check that audio context is running
+                    if (this.audioContext.state !== 'running') {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        if (this.audioContext.state === 'suspended') {
+                            await this.audioContext.resume();
+                        }
+                    }
+
+                    if (this.audioContext.state !== 'running') {
+                        throw new Error(`AudioContext state: ${this.audioContext.state}. Please try tapping the button again.`);
+                    }
+
+                    console.log('AudioContext ready, creating mood music...');
+
+                    // Create mood-appropriate music
+                    this.createMoodMusic(this.audioContext, currentMood);
+                    this.isPlaying = true;
+                    
+                    // Update button to pause state
+                    this.updateMusicButton('pause');
+                    
+                    console.log(`Mood music started for ${this.moodLabels[currentMood]} mood`);
+
+                } catch (error) {
+                    console.error('Error starting mood music:', error);
+                    
+                    let userMessage = 'Could not start mood music. ';
+                    if (error.message.includes('AudioContext')) {
+                        userMessage += 'Please try tapping the play button again. Some devices require a second tap to enable audio.';
+                    } else if (error.name === 'NotAllowedError') {
+                        userMessage += 'Audio playback was blocked. Please enable audio in your browser settings.';
+                    } else if (error.name === 'NotSupportedError') {
+                        userMessage += 'Audio playback is not supported on this device/browser.';
+                    } else {
+                        userMessage += `Error: ${error.message}`;
+                    }
+                    
+                    alert(userMessage);
+                    this.updateMusicButton('play');
+                }
+            }
+
+            async loadMoodBasedMusic(moodValue) {
+                try {
+                    const moodName = this.moodLabels[moodValue];
+                    const moodDescriptions = {
+                        0: 'uplifting and comforting music to help lift spirits and provide emotional support',
+                        1: 'inspiring and empowering music to channel frustration into motivation and strength',
+                        2: 'clarifying and gentle music to help organize thoughts and find mental clarity',
+                        3: 'calming and grounding music to reduce anxiety and promote inner peace',
+                        4: 'balanced and peaceful ambient music for maintaining equilibrium',
+                        5: 'joyful and light music to enhance and celebrate positive feelings',
+                        6: 'serene and meditative music to deepen contentment and mindfulness',
+                        7: 'energetic and celebratory music to match and amplify excitement'
+                    };
+
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.GEMINI_API_KEY}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: `Generate parameters for creating ${moodDescriptions[moodValue]} for someone feeling ${moodName.toLowerCase()}.
+
+Create therapeutic, mood-appropriate music using Web Audio API parameters:
+
+MOOD: ${moodName} (${moodValue}/7)
+MUSIC_TYPE: [Choose: uplifting/inspiring/calming/joyful/energetic/peaceful based on mood]
+TEMPO: [BPM appropriate for the mood - slower for sad/anxious, faster for excited/happy]
+KEY: [Musical key that matches the emotional state]
+HARMONY: [Chord progressions that support the desired emotional journey]
+RHYTHM: [Percussion patterns that complement the mood]
+TEXTURES: [Sound textures and instruments that enhance the therapeutic effect]
+VOLUME: [Gentle volumes appropriate for background music]
+EVOLUTION: [How the music should progress to help improve mood]
+
+Focus on:
+- Therapeutic and mood-supportive qualities
+- Helping the user transition to a better emotional state
+- Non-intrusive background music suitable for journaling
+- Scientifically-informed music therapy approaches
+- Gradual emotional progression
+
+Format as concise parameters for audio generation.`
+                                }]
+                            }],
+                            generationConfig: {
+                                temperature: 0.7,
+                                maxOutputTokens: 400,
+                            }
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.musicParams = data.candidates[0].content.parts[0].text;
+                        this.currentMoodMusic = moodValue;
+                        console.log(`Mood music parameters for ${moodName}:`, this.musicParams);
+                    }
+                } catch (error) {
+                    console.error('Error loading mood-based music parameters:', error);
+                }
+            }
+
+            pauseMusic() {
+                // Stop all oscillators completely
+                this.oscillators.forEach(osc => {
+                    try {
+                        osc.stop();
+                    } catch (e) {
+                        // Oscillator might already be stopped
+                    }
+                });
+                this.oscillators = [];
+                this.isPlaying = false;
+                
+                // Clear any pending timeouts to prevent new sounds from starting
+                if (this.audioContext) {
+                    this.audioContext.suspend();
+                }
+                
+                // Update button to play state
+                this.updateMusicButton('play');
+                console.log('Mood music stopped');
+            }
+
+            updateMusicButton(state) {
+                const musicToggle = document.getElementById('musicToggle');
+                const musicIcon = document.getElementById('musicIcon');
+                const musicLabel = document.getElementById('musicLabel');
+
+                if (state === 'play') {
+                    // Play state styling
+                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl sm:rounded-2xl hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600 flex flex-col items-center space-y-1';
+                    musicToggle.title = 'Play mood music';
+                    
+                    // Play icon
+                    musicIcon.innerHTML = `
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
+                    `;
+                    
+                    if (musicLabel) {
+                        musicLabel.textContent = 'Play Music';
+                        musicLabel.className = 'text-xs font-medium text-gray-600 dark:text-gray-400';
+                    }
+                } else {
+                    // Pause state styling
+                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-green-500 dark:bg-green-600 text-white rounded-xl sm:rounded-2xl hover:bg-green-600 dark:hover:bg-green-700 transition-all duration-200 shadow-lg border border-green-400 dark:border-green-500 flex flex-col items-center space-y-1';
+                    musicToggle.title = 'Pause mood music';
+                    
+                    // Pause icon
+                    musicIcon.innerHTML = `
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"></path>
+                    `;
+                    
+                    if (musicLabel) {
+                        const currentMoodName = this.currentMoodMusic !== null ? this.moodLabels[this.currentMoodMusic] : 'Mood';
+                        musicLabel.textContent = `${currentMoodName} Music`;
+                        musicLabel.className = 'text-xs font-medium text-white';
+                    }
+                }
+            }
+
+            createMoodMusic(audioContext, moodValue) {
+                // Stop any existing music first
+                this.oscillators.forEach(osc => {
+                    try { osc.stop(); } catch (e) {}
+                });
+                this.oscillators = [];
+
+                switch(moodValue) {
+                    case 0: // Sad - Uplifting, warm tones
+                        this.createUpliftingMusic(audioContext);
+                        break;
+                    case 1: // Frustrated - Empowering, strong rhythm
+                        this.createEmpoweringMusic(audioContext);
+                        break;
+                    case 2: // Confused - Clarifying, gentle structure
+                        this.createClarifyingMusic(audioContext);
+                        break;
+                    case 3: // Anxious - Calming, grounding
+                        this.createCalmingMusic(audioContext);
+                        break;
+                    case 4: // Neutral - Balanced ambient
+                        this.createBalancedMusic(audioContext);
+                        break;
+                    case 5: // Happy - Joyful, bright
+                        this.createJoyfulMusic(audioContext);
+                        break;
+                    case 6: // Content - Serene, meditative
+                        this.createSereneMusic(audioContext);
+                        break;
+                    case 7: // Excited - Energetic, celebratory
+                        this.createEnergeticMusic(audioContext);
+                        break;
+                    default:
+                        this.createBalancedMusic(audioContext);
+                }
+            }
+
+            createUpliftingMusic(audioContext) {
+                // Warm, major chord progressions to lift spirits
+                const upliftingChords = [
+                    [220, 277, 330], // A major
+                    [247, 311, 370], // B major
+                    [262, 330, 392], // C major
+                    [196, 247, 294], // G major
+                ];
+                let chordIndex = 0;
+
+                const playUpliftingChord = () => {
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
+                    
+                    const chord = upliftingChords[chordIndex];
+                    chord.forEach((freq, i) => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                        
+                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                        gainNode.gain.linearRampToValueAtTime(0.02, audioContext.currentTime + 1);
+                        gainNode.gain.linearRampToValueAtTime(0.015, audioContext.currentTime + 6);
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.start();
+                        this.oscillators.push(oscillator);
+                    });
+                    
+                    chordIndex = (chordIndex + 1) % upliftingChords.length;
+                    if (this.isPlaying) setTimeout(playUpliftingChord, 6000);
+                };
+                
+                setTimeout(playUpliftingChord, 500);
+            }
+
+            createEmpoweringMusic(audioContext) {
+                // Strong, rhythmic patterns to channel energy positively
+                const empoweringNotes = [220, 247, 262, 294, 330]; // A minor pentatonic
+                let noteIndex = 0;
+
+                const playEmpoweringNote = () => {
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
+                    
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    const filter = audioContext.createBiquadFilter();
+                    
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(empoweringNotes[noteIndex], audioContext.currentTime);
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(800, audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.5);
+                    
+                    oscillator.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 1.5);
+                    this.oscillators.push(oscillator);
+                    
+                    noteIndex = (noteIndex + 1) % empoweringNotes.length;
+                    if (this.isPlaying) setTimeout(playEmpoweringNote, 800);
+                };
+                
+                setTimeout(playEmpoweringNote, 200);
+            }
+
+            createClarifyingMusic(audioContext) {
+                // Gentle, structured patterns to help organize thoughts
+                const clarifyingFreqs = [262, 294, 330, 349, 392]; // C major scale
+                let freqIndex = 0;
+
+                const playClarifyingTone = () => {
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
+                    
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(clarifyingFreqs[freqIndex] * 2, audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.006, audioContext.currentTime + 0.5);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 3);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 3);
+                    this.oscillators.push(oscillator);
+                    
+                    freqIndex = (freqIndex + 1) % clarifyingFreqs.length;
+                    if (this.isPlaying) setTimeout(playClarifyingTone, 2000);
+                };
+                
+                setTimeout(playClarifyingTone, 1000);
+            }
+
+            createCalmingMusic(audioContext) {
+                // Very slow, deep tones to reduce anxiety
+                const calmingChords = [
+                    [196, 233, 294], // G major, lower octave
+                    [174, 207, 261], // F major, lower octave
+                    [220, 262, 330], // A minor
+                ];
+                let chordIndex = 0;
+
+                const playCalmingChord = () => {
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
+                    
+                    const chord = calmingChords[chordIndex];
+                    chord.forEach((freq, i) => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        const filter = audioContext.createBiquadFilter();
+                        
+                        oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                        
+                        filter.type = 'lowpass';
+                        filter.frequency.setValueAtTime(400, audioContext.currentTime);
+                        filter.Q.setValueAtTime(0.3, audioContext.currentTime);
+                        
+                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                        gainNode.gain.linearRampToValueAtTime(0.012, audioContext.currentTime + 3);
+                        gainNode.gain.linearRampToValueAtTime(0.008, audioContext.currentTime + 10);
+                        
+                        oscillator.connect(filter);
+                        filter.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.start();
+                        this.oscillators.push(oscillator);
+                    });
+                    
+                    chordIndex = (chordIndex + 1) % calmingChords.length;
+                    if (this.isPlaying) setTimeout(playCalmingChord, 10000);
+                };
+                
+                setTimeout(playCalmingChord, 1000);
+            }
+
+            createBalancedMusic(audioContext) {
+                // Neutral, peaceful ambient tones
+                const balancedFreqs = [262, 330, 392, 523]; // C major chord spread
+                let freqIndex = 0;
+
+                const playBalancedTone = () => {
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
+                    
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(balancedFreqs[freqIndex], audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.008, audioContext.currentTime + 2);
+                    gainNode.gain.linearRampToValueAtTime(0.005, audioContext.currentTime + 6);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    this.oscillators.push(oscillator);
+                    
+                    freqIndex = (freqIndex + 1) % balancedFreqs.length;
+                    if (this.isPlaying) setTimeout(playBalancedTone, 5000);
+                };
+                
+                setTimeout(playBalancedTone, 800);
+            }
+
+            createJoyfulMusic(audioContext) {
+                // Bright, upbeat patterns
+                const joyfulNotes = [523, 587, 659, 698, 784]; // C5 major scale
+                let noteIndex = 0;
+
+                const playJoyfulNote = () => {
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
+                    
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(joyfulNotes[noteIndex], audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.012, audioContext.currentTime + 0.2);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.8);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 1.8);
+                    this.oscillators.push(oscillator);
+                    
+                    noteIndex = (noteIndex + 1) % joyfulNotes.length;
+                    if (this.isPlaying) setTimeout(playJoyfulNote, 1200);
+                };
+                
+                setTimeout(playJoyfulNote, 300);
+            }
+
+            createSereneMusic(audioContext) {
+                // Meditative, peaceful tones
+                const sereneFreqs = [220, 247, 294, 330]; // Lower, calming frequencies
+                let freqIndex = 0;
+
+                const playSereneTone = () => {
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
+                    
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    const filter = audioContext.createBiquadFilter();
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(sereneFreqs[freqIndex], audioContext.currentTime);
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(600, audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 4);
+                    gainNode.gain.linearRampToValueAtTime(0.006, audioContext.currentTime + 12);
+                    
+                    oscillator.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    this.oscillators.push(oscillator);
+                    
+                    freqIndex = (freqIndex + 1) % sereneFreqs.length;
+                    if (this.isPlaying) setTimeout(playSereneTone, 8000);
+                };
+                
+                setTimeout(playSereneTone, 2000);
+            }
+
+            createEnergeticMusic(audioContext) {
+                // Fast, celebratory patterns
+                const energeticNotes = [659, 698, 784, 880, 988]; // Higher octave for energy
+                let noteIndex = 0;
+
+                const playEnergeticNote = () => {
+                    if (!this.isPlaying || !audioContext || audioContext.state !== 'running') return;
+                    
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    const filter = audioContext.createBiquadFilter();
+                    
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(energeticNotes[noteIndex], audioContext.currentTime);
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1000, audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.008, audioContext.currentTime + 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+                    
+                    oscillator.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.8);
+                    this.oscillators.push(oscillator);
+                    
+                    noteIndex = (noteIndex + 1) % energeticNotes.length;
+                    if (this.isPlaying) setTimeout(playEnergeticNote, 400);
+                };
+                
+                setTimeout(playEnergeticNote, 100);
             }
         }
 
