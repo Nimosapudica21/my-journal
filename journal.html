@@ -151,6 +151,7 @@
                             <li>• Translations provided if speaking in non-English languages</li>
                             <li>• Perfect for quick voice journaling or when typing is inconvenient</li>
                             <li>• Just pure transcription - your authentic voice in text</li>
+                            <li>• <strong>Music automatically pauses during recording for clear audio</strong></li>
                         </ul>
                     </div>
                 </div>
@@ -220,6 +221,7 @@
                 this.audioChunks = [];
                 this.recordingTimer = null;
                 this.recordingStartTime = null;
+                this.musicWasPausedForRecording = false;
                 // WARNING: In production, use environment variables or backend API
                 this.GEMINI_API_KEY = 'AIzaSyC_ZRimxlh9GdFO5RdfKh0CBkC57Esr5NI';
                 this.init();
@@ -586,7 +588,7 @@ Format as a JSON-like structure for easy parsing.`
                 }
             }
 
-            pauseMusic() {
+            pauseMusic(isAutomatic = false) {
                 // Stop all oscillators completely
                 this.oscillators.forEach(osc => {
                     try {
@@ -604,7 +606,12 @@ Format as a JSON-like structure for easy parsing.`
                 }
                 
                 // Update button to play state
-                this.updateMusicButton('play');
+                if (!isAutomatic) {
+                    // Only update button state if manually stopped
+                    this.updateMusicButton('play');
+                }
+                
+                console.log(isAutomatic ? 'Music automatically paused for recording' : 'Music manually stopped');
             }
 
             updateMusicButton(state) {
@@ -645,6 +652,22 @@ Format as a JSON-like structure for easy parsing.`
 
             async startRecording() {
                 try {
+                    // Automatically pause music to avoid interference with voice recording
+                    if (this.isPlaying) {
+                        console.log('Pausing music for voice recording...');
+                        this.pauseMusic(true); // Pass true to indicate automatic pausing
+                        this.musicWasPausedForRecording = true; // Track that we paused it
+                        
+                        // Show user feedback about music being paused
+                        const musicLabel = document.getElementById('musicLabel');
+                        if (musicLabel) {
+                            musicLabel.textContent = 'Paused for Recording';
+                            musicLabel.className = 'text-xs font-medium text-orange-600 dark:text-orange-400';
+                        }
+                    } else {
+                        this.musicWasPausedForRecording = false;
+                    }
+
                     // Check for mobile browser compatibility
                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                         alert('Voice recording is not supported on this device/browser. Please try using Chrome or Safari.');
@@ -727,12 +750,16 @@ Format as a JSON-like structure for easy parsing.`
                         
                         if (audioBlob.size === 0) {
                             alert('No audio was recorded. Please try again and make sure to speak clearly and allow microphone access.');
+                            // Reset music button state if recording failed
+                            this.resetMusicButtonAfterRecording();
                             return;
                         }
                         
                         // Minimum size check (audio should be at least a few KB)
                         if (audioBlob.size < 1000) {
                             alert('Recording too short or empty. Please try speaking for at least 2-3 seconds.');
+                            // Reset music button state if recording failed
+                            this.resetMusicButtonAfterRecording();
                             return;
                         }
                         
@@ -740,12 +767,18 @@ Format as a JSON-like structure for easy parsing.`
                         
                         // Stop all tracks to release microphone
                         stream.getTracks().forEach(track => track.stop());
+                        
+                        // Reset music button state after successful recording
+                        this.resetMusicButtonAfterRecording();
                     };
 
                     this.mediaRecorder.onerror = (event) => {
                         console.error('MediaRecorder error:', event.error);
                         alert('Recording error occurred. Please try again.');
                         stream.getTracks().forEach(track => track.stop());
+                        
+                        // Reset music button state if recording failed
+                        this.resetMusicButtonAfterRecording();
                     };
 
                     // Start recording with more frequent data capture for mobile reliability
@@ -764,6 +797,9 @@ Format as a JSON-like structure for easy parsing.`
 
                 } catch (error) {
                     console.error('Error starting recording:', error);
+                    
+                    // Reset music button state if recording failed to start
+                    this.resetMusicButtonAfterRecording();
                     
                     let errorMessage = 'Could not start recording. ';
                     if (error.name === 'NotAllowedError') {
@@ -794,6 +830,18 @@ Format as a JSON-like structure for easy parsing.`
                 }
             }
 
+            resetMusicButtonAfterRecording() {
+                // Reset the music button text and state after recording is complete
+                const musicLabel = document.getElementById('musicLabel');
+                if (musicLabel && !this.isPlaying) {
+                    musicLabel.textContent = 'Play Music';
+                    musicLabel.className = 'text-xs font-medium text-gray-600 dark:text-gray-400';
+                }
+                
+                // Don't automatically restart music - let user choose
+                this.musicWasPausedForRecording = false;
+            }
+
             startRecordingTimer() {
                 this.recordingStartTime = Date.now();
                 this.recordingTimer = setInterval(() => {
@@ -821,6 +869,15 @@ Format as a JSON-like structure for easy parsing.`
                     recordBtn.className = 'touch-target px-4 sm:px-6 py-3 bg-gray-600 dark:bg-gray-700 text-white rounded-xl hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial';
                     recordBtnText.textContent = 'Stop Recording';
                     recordingStatus.classList.remove('hidden');
+                    
+                    // Update recording status to mention music if it was paused
+                    const recordingTimeSpan = document.getElementById('recordingTime');
+                    if (this.musicWasPausedForRecording) {
+                        const statusText = recordingStatus.querySelector('span');
+                        if (statusText) {
+                            statusText.innerHTML = `Recording... <span id="recordingTime">${recordingTimeSpan ? recordingTimeSpan.textContent : '0:00'}</span> <span class="text-orange-300">(Music paused)</span>`;
+                        }
+                    }
                 } else {
                     recordBtn.className = 'touch-target px-4 sm:px-6 py-3 bg-red-600 dark:bg-red-700 text-white rounded-xl hover:bg-red-700 dark:hover:bg-red-600 transition-colors font-medium flex items-center justify-center space-x-2 flex-1 sm:flex-initial';
                     recordBtnText.textContent = 'Start Recording';
