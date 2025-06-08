@@ -59,10 +59,15 @@
             </div>
             <div class="flex items-center space-x-3">
                 <!-- Music Control -->
-                <button id="musicToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm" title="Toggle calming sounds">
-                    <svg id="musicIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                    </svg>
+                <button id="musicToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600" title="Play lofi house music">
+                    <div class="flex items-center space-x-2">
+                        <svg id="musicIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- Play icon (default state) -->
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m2-7a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
+                        </svg>
+                        <span id="musicLabel" class="text-xs font-medium hidden sm:inline">Play Music</span>
+                    </div>
                 </button>
             </div>
         </div>
@@ -400,6 +405,7 @@
             setupMusicPlayer() {
                 const musicToggle = document.getElementById('musicToggle');
                 const musicIcon = document.getElementById('musicIcon');
+                const musicLabel = document.getElementById('musicLabel');
                 this.isPlaying = false;
                 this.audioContext = null;
                 this.oscillators = [];
@@ -410,27 +416,31 @@
 
                 musicToggle.addEventListener('click', async () => {
                     if (this.isPlaying) {
-                        this.stopMusic();
+                        this.pauseMusic();
                     } else {
-                        this.startMusic();
+                        this.playMusic();
                     }
                 });
+
+                // Initialize with play state
+                this.updateMusicButton('play');
             }
 
             async autoStartMusic() {
                 // Auto-start music after a short delay to allow user interaction
                 setTimeout(async () => {
                     try {
-                        await this.startMusic();
+                        await this.playMusic();
                     } catch (error) {
                         console.log('Auto-play blocked - user can manually start music');
+                        // Keep the play button visible for manual interaction
+                        this.updateMusicButton('play');
                     }
-                }, 1000);
+                }, 1500); // Slightly longer delay for better UX
             }
 
-            async startMusic() {
+            async playMusic() {
                 const musicToggle = document.getElementById('musicToggle');
-                const musicIcon = document.getElementById('musicIcon');
 
                 if (!this.audioContext) {
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -444,20 +454,12 @@
                 this.createLofiHouseMusic(this.audioContext);
                 this.isPlaying = true;
                 
-                musicIcon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
-                `;
-                musicToggle.title = "Mute lofi music";
-                musicToggle.classList.add('bg-green-500', 'text-white');
-                musicToggle.classList.remove('bg-white/70', 'dark:bg-gray-800/70', 'text-gray-700', 'dark:text-gray-300');
+                // Update button to pause state
+                this.updateMusicButton('pause');
             }
 
-            stopMusic() {
-                const musicToggle = document.getElementById('musicToggle');
-                const musicIcon = document.getElementById('musicIcon');
-
-                // Stop all oscillators
+            pauseMusic() {
+                // Stop all oscillators completely
                 this.oscillators.forEach(osc => {
                     try {
                         osc.stop();
@@ -468,12 +470,47 @@
                 this.oscillators = [];
                 this.isPlaying = false;
                 
-                musicIcon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                `;
-                musicToggle.title = "Play lofi house music";
-                musicToggle.classList.remove('bg-green-500', 'text-white');
-                musicToggle.classList.add('bg-white/70', 'dark:bg-gray-800/70', 'text-gray-700', 'dark:text-gray-300');
+                // Clear any pending timeouts to prevent new sounds from starting
+                if (this.audioContext) {
+                    this.audioContext.suspend();
+                }
+                
+                // Update button to play state
+                this.updateMusicButton('play');
+            }
+
+            updateMusicButton(state) {
+                const musicToggle = document.getElementById('musicToggle');
+                const musicIcon = document.getElementById('musicIcon');
+                const musicLabel = document.getElementById('musicLabel');
+
+                if (state === 'play') {
+                    // Play state styling
+                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600';
+                    musicToggle.title = 'Play lofi house music';
+                    
+                    // Play icon
+                    musicIcon.innerHTML = `
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
+                    `;
+                    
+                    if (musicLabel) {
+                        musicLabel.textContent = 'Play Music';
+                    }
+                } else {
+                    // Pause state styling
+                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-green-500 dark:bg-green-600 text-white rounded-xl hover:bg-green-600 dark:hover:bg-green-700 transition-all duration-200 shadow-lg border border-green-400 dark:border-green-500';
+                    musicToggle.title = 'Pause lofi house music';
+                    
+                    // Pause icon
+                    musicIcon.innerHTML = `
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"></path>
+                    `;
+                    
+                    if (musicLabel) {
+                        musicLabel.textContent = 'Playing...';
+                    }
+                }
             }
 
             async loadLofiHouseMusic() {
@@ -546,6 +583,8 @@ Format as JSON-like structure for easy parsing.`
                 let bassIndex = 0;
                 
                 const playBassNote = () => {
+                    if (!this.isPlaying) return; // Check if still playing
+                    
                     const oscillator = audioContext.createOscillator();
                     const gainNode = audioContext.createGain();
                     const filter = audioContext.createBiquadFilter();
@@ -567,6 +606,7 @@ Format as JSON-like structure for easy parsing.`
                     
                     oscillator.start();
                     oscillator.stop(audioContext.currentTime + 1.5);
+                    this.oscillators.push(oscillator);
                     
                     bassIndex = (bassIndex + 1) % bassFreqs.length;
                     
@@ -581,6 +621,8 @@ Format as JSON-like structure for easy parsing.`
             createDrumPattern(audioContext) {
                 // Create kick drum
                 const createKick = () => {
+                    if (!this.isPlaying) return; // Check if still playing
+                    
                     const oscillator = audioContext.createOscillator();
                     const gainNode = audioContext.createGain();
                     
@@ -596,6 +638,7 @@ Format as JSON-like structure for easy parsing.`
                     
                     oscillator.start();
                     oscillator.stop(audioContext.currentTime + 0.3);
+                    this.oscillators.push(oscillator);
                     
                     if (this.isPlaying) {
                         setTimeout(createKick, 600); // 4/4 pattern
@@ -604,6 +647,8 @@ Format as JSON-like structure for easy parsing.`
                 
                 // Create hi-hat
                 const createHiHat = () => {
+                    if (!this.isPlaying) return; // Check if still playing
+                    
                     const bufferSize = 2048;
                     const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
                     const output = buffer.getChannelData(0);
@@ -652,6 +697,8 @@ Format as JSON-like structure for easy parsing.`
                 let chordIndex = 0;
                 
                 const playChord = () => {
+                    if (!this.isPlaying) return; // Check if still playing
+                    
                     const chord = chords[chordIndex];
                     
                     chord.forEach((freq, i) => {
@@ -695,6 +742,8 @@ Format as JSON-like structure for easy parsing.`
             createHighEndTextures(audioContext) {
                 // Subtle vinyl crackle and atmospheric sounds
                 const createTexture = () => {
+                    if (!this.isPlaying) return; // Check if still playing
+                    
                     const oscillator = audioContext.createOscillator();
                     const gainNode = audioContext.createGain();
                     const filter = audioContext.createBiquadFilter();
@@ -716,6 +765,7 @@ Format as JSON-like structure for easy parsing.`
                     
                     oscillator.start();
                     oscillator.stop(audioContext.currentTime + 2);
+                    this.oscillators.push(oscillator);
                     
                     if (this.isPlaying) {
                         setTimeout(createTexture, 3000 + Math.random() * 2000);
