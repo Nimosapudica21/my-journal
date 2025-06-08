@@ -242,9 +242,9 @@
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
-            <!-- Journal Entries Section -->
-            <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 border border-white/20 dark:border-gray-700/30">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8 mb-6 sm:mb-8">
+            <!-- Journal Entries Section (Takes 2 columns) -->
+            <div class="lg:col-span-2 glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 border border-white/20 dark:border-gray-700/30">
                 <div class="flex items-center justify-between mb-4 sm:mb-6">
                     <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
                         <span class="mr-2">📝</span>
@@ -258,48 +258,51 @@
                     </button>
                 </div>
                 
-                <div id="journalEntries" class="space-y-3 sm:space-y-4 max-h-64 overflow-y-auto">
+                <div id="journalEntries" class="space-y-3 sm:space-y-4 max-h-96 overflow-y-auto">
                     <!-- Journal entries will be populated by JavaScript -->
                 </div>
             </div>
 
-            <!-- Tasks Section -->
-            <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 border border-white/20 dark:border-gray-700/30">
-                <div class="flex items-center justify-between mb-4 sm:mb-6">
-                    <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
-                        <span class="mr-2">✅</span>
-                        Tasks
-                    </h3>
-                    <button id="addTaskBtn" class="touch-target w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                    </button>
+            <!-- Tasks and Habits Section (Side by side in 1 column) -->
+            <div class="space-y-4 sm:space-y-6">
+                <!-- Tasks Section -->
+                <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 border border-white/20 dark:border-gray-700/30">
+                    <div class="flex items-center justify-between mb-4 sm:mb-6">
+                        <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
+                            <span class="mr-2">✅</span>
+                            Tasks
+                        </h3>
+                        <button id="addTaskBtn" class="touch-target w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="tasksList" class="space-y-3 max-h-48 overflow-y-auto">
+                        <!-- Tasks will be populated by JavaScript -->
+                    </div>
                 </div>
-                
-                <div id="tasksList" class="space-y-3 max-h-64 overflow-y-auto">
-                    <!-- Tasks will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
 
-        <!-- Habit Tracking Section -->
-        <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8 border border-white/20 dark:border-gray-700/30">
-            <div class="flex items-center justify-between mb-4 sm:mb-6">
-                <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
-                    <span class="mr-2">🔄</span>
-                    <span class="hidden sm:inline">Habit Tracking</span>
-                    <span class="sm:hidden">Habits</span>
-                </h3>
-                <button id="addHabitBtn" class="touch-target w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl sm:rounded-2xl flex items-center justify-center hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl">
-                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                </button>
-            </div>
-            
-            <div id="habitsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                <!-- Habits will be populated by JavaScript -->
+                <!-- Habit Tracking Section -->
+                <div class="glass-card rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 border border-white/20 dark:border-gray-700/30">
+                    <div class="flex items-center justify-between mb-4 sm:mb-6">
+                        <h3 class="text-lg sm:text-xl font-light text-gray-800 dark:text-gray-100 flex items-center">
+                            <span class="mr-2">🔄</span>
+                            <span class="hidden sm:inline">Habits</span>
+                            <span class="sm:hidden">Habits</span>
+                        </h3>
+                        <button id="addHabitBtn" class="touch-target w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl sm:rounded-2xl flex items-center justify-center hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="habitsList" class="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
+                        <!-- Habits will be populated by JavaScript -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -721,11 +724,13 @@
 
             renderJournalEntries() {
                 const entriesContainer = document.getElementById('journalEntries');
-                const todaysEntries = Object.keys(this.entries)
-                    .filter(date => date === this.currentDate)
-                    .map(date => ({ date, content: this.entries[date] }));
+                
+                // Get all entries and sort by date (newest first)
+                const allEntries = Object.keys(this.entries)
+                    .sort((a, b) => new Date(b) - new Date(a))
+                    .map((date, index) => ({ date, content: this.entries[date], serialNumber: index + 1 }));
 
-                if (todaysEntries.length === 0) {
+                if (allEntries.length === 0) {
                     entriesContainer.innerHTML = `
                         <div class="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
                             <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-gray-100 dark:bg-gray-700 rounded-xl sm:rounded-2xl flex items-center justify-center">
@@ -733,25 +738,54 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
                             </div>
-                            <p class="text-sm sm:text-base font-medium">No journal entries for today</p>
-                            <p class="text-xs sm:text-sm mt-1">Tap + to write or use voice assistant</p>
+                            <p class="text-sm sm:text-base font-medium">No journal entries yet</p>
+                            <p class="text-xs sm:text-sm mt-1">Tap + to write your first entry</p>
                         </div>
                     `;
                     return;
                 }
 
-                entriesContainer.innerHTML = todaysEntries.map(entry => {
+                entriesContainer.innerHTML = allEntries.map(entry => {
                     const lines = entry.content.split('\n');
-                    const summary = lines[0];
-                    const content = lines.slice(2).join('\n'); // Skip summary and empty line
-                    const preview = content.length > 80 ? content.substring(0, 80) + '...' : content;
+                    const summary = lines[0].startsWith('**Summary:**') ? lines[0].replace('**Summary:** ', '') : '';
+                    const content = lines.slice(summary ? 2 : 0).join('\n');
+                    
+                    // Create a one-line summary from the content if no summary exists
+                    let displaySummary = summary;
+                    if (!displaySummary) {
+                        displaySummary = content.length > 60 ? content.substring(0, 60) + '...' : content;
+                    }
+                    
+                    // Format the date nicely
+                    const entryDate = new Date(entry.date);
+                    const today = new Date();
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    
+                    let dateDisplay;
+                    if (entry.date === today.toISOString().split('T')[0]) {
+                        dateDisplay = 'Today';
+                    } else if (entry.date === yesterday.toISOString().split('T')[0]) {
+                        dateDisplay = 'Yesterday';
+                    } else {
+                        dateDisplay = entryDate.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric',
+                            year: entryDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+                        });
+                    }
                     
                     return `
                         <div class="p-3 sm:p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl sm:rounded-2xl border border-gray-200/50 dark:border-gray-600/50 touch-target group hover:bg-white/70 dark:hover:bg-gray-600/70 transition-all duration-200">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1 cursor-pointer" onclick="window.location.href='journal.html?date=${entry.date}'">
-                                    ${summary ? `<div class="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 mb-1 sm:mb-2">${summary}</div>` : ''}
-                                    <div class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${preview}</div>
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">${entry.serialNumber}</span>
+                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">${dateDisplay}</span>
+                                    </div>
+                                    <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        ${displaySummary}
+                                    </div>
                                 </div>
                                 <button onclick="app.deleteEntry('${entry.date}')" 
                                         class="ml-3 p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 opacity-0 group-hover:opacity-100"
