@@ -355,12 +355,24 @@
             setupVoiceRecording() {
                 const recordBtn = document.getElementById('recordBtn');
                 
-                recordBtn.addEventListener('click', () => {
+                // Enhanced mobile touch support
+                const handleRecordingToggle = (e) => {
+                    e.preventDefault(); // Prevent default touch behaviors
+                    
                     if (this.isRecording) {
                         this.stopRecording();
                     } else {
                         this.startRecording();
                     }
+                };
+                
+                // Add both click and touch events for maximum compatibility
+                recordBtn.addEventListener('click', handleRecordingToggle);
+                recordBtn.addEventListener('touchend', handleRecordingToggle);
+                
+                // Prevent double-firing of events on mobile
+                recordBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
                 });
             }
 
@@ -372,19 +384,6 @@
                         viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
                     }
                 }
-
-                // Add better touch support for mobile recording
-                const recordBtn = document.getElementById('recordBtn');
-                recordBtn.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    // Add visual feedback
-                    recordBtn.style.transform = 'scale(0.95)';
-                });
-
-                recordBtn.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    recordBtn.style.transform = 'scale(1)';
-                });
 
                 // Improve scrolling on mobile
                 document.querySelectorAll('textarea, select').forEach(element => {
@@ -399,6 +398,22 @@
                         document.documentElement.style.setProperty('--vh', `${vh}px`);
                     });
                 }
+
+                // Add haptic feedback for recording button on supported devices
+                const recordBtn = document.getElementById('recordBtn');
+                if (recordBtn && 'vibrate' in navigator) {
+                    recordBtn.addEventListener('touchstart', () => {
+                        // Small vibration feedback when touching record button
+                        navigator.vibrate && navigator.vibrate(10);
+                    });
+                }
+
+                // Prevent accidental text selection during recording
+                document.addEventListener('selectstart', (e) => {
+                    if (this.isRecording) {
+                        e.preventDefault();
+                    }
+                });
             }
 
             setupMusicPlayer() {
@@ -557,55 +572,88 @@ Format as a JSON-like structure for easy parsing.`
                         return;
                     }
 
-                    // Request microphone permission with optimized constraints for speech recognition
-                    const constraints = {
+                    // Use flexible constraints that work on all mobile devices
+                    let constraints = {
                         audio: {
                             echoCancellation: true,
                             noiseSuppression: true,
-                            autoGainControl: true,
-                            sampleRate: 16000, // Optimal for speech recognition
-                            channelCount: 1,    // Mono audio
-                            sampleSize: 16      // 16-bit audio
+                            autoGainControl: true
                         }
                     };
 
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    // Try with basic audio constraints first (more compatible)
+                    let stream;
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    } catch (constraintError) {
+                        console.log('Trying with basic audio constraints due to:', constraintError);
+                        // Fallback to very basic constraints for maximum compatibility
+                        constraints = { audio: true };
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    }
                     
-                    // Determine the best audio format for the API
+                    // Determine the best audio format for the device
                     let mimeType = 'audio/webm';
+                    let options = {};
+                    
+                    // Check supported formats in order of preference
                     if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
                         mimeType = 'audio/webm;codecs=opus';
+                        options = { mimeType: mimeType };
                     } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
                         mimeType = 'audio/mp4';
+                        options = { mimeType: mimeType };
+                    } else if (MediaRecorder.isTypeSupported('audio/mp4;codecs=mp4a.40.2')) {
+                        mimeType = 'audio/mp4;codecs=mp4a.40.2';
+                        options = { mimeType: mimeType };
                     } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
                         mimeType = 'audio/ogg;codecs=opus';
-                    } else if (!MediaRecorder.isTypeSupported('audio/webm')) {
-                        alert('Audio recording format not supported on this device. Please try a different browser.');
-                        stream.getTracks().forEach(track => track.stop());
-                        return;
+                        options = { mimeType: mimeType };
+                    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                        mimeType = 'audio/webm';
+                        options = { mimeType: mimeType };
+                    } else {
+                        // For maximum compatibility, let the browser choose
+                        console.log('Using browser default audio format');
+                        mimeType = 'audio/webm'; // Default fallback
+                        options = {}; // Let browser decide
                     }
 
-                    console.log('Using MIME type:', mimeType);
+                    console.log('Using MIME type:', mimeType, 'with options:', options);
                     
-                    this.mediaRecorder = new MediaRecorder(stream, { 
-                        mimeType: mimeType,
-                        audioBitsPerSecond: 128000 // Good quality for speech
-                    });
+                    // Create MediaRecorder with flexible options
+                    try {
+                        this.mediaRecorder = new MediaRecorder(stream, options);
+                    } catch (recorderError) {
+                        console.log('Trying MediaRecorder without options due to:', recorderError);
+                        // Ultimate fallback - let browser choose everything
+                        this.mediaRecorder = new MediaRecorder(stream);
+                        mimeType = 'audio/webm'; // Assume webm as default
+                    }
                     
                     const audioChunks = [];
 
                     this.mediaRecorder.ondataavailable = (event) => {
                         if (event.data.size > 0) {
                             audioChunks.push(event.data);
+                            console.log('Audio chunk received, size:', event.data.size);
                         }
                     };
 
                     this.mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: mimeType });
-                        console.log('Audio recording complete. Size:', audioBlob.size, 'bytes');
+                        // Get actual MIME type from the recorded data
+                        const actualMimeType = audioChunks.length > 0 ? audioChunks[0].type || mimeType : mimeType;
+                        const audioBlob = new Blob(audioChunks, { type: actualMimeType });
+                        console.log('Audio recording complete. Size:', audioBlob.size, 'bytes, MIME type:', actualMimeType);
                         
                         if (audioBlob.size === 0) {
-                            alert('No audio was recorded. Please try again and make sure you speak clearly.');
+                            alert('No audio was recorded. Please try again and make sure to speak clearly and allow microphone access.');
+                            return;
+                        }
+                        
+                        // Minimum size check (audio should be at least a few KB)
+                        if (audioBlob.size < 1000) {
+                            alert('Recording too short or empty. Please try speaking for at least 2-3 seconds.');
                             return;
                         }
                         
@@ -621,26 +669,37 @@ Format as a JSON-like structure for easy parsing.`
                         stream.getTracks().forEach(track => track.stop());
                     };
 
-                    // Start recording with data available every 100ms for better quality
-                    this.mediaRecorder.start(100);
+                    // Start recording with more frequent data capture for mobile reliability
+                    try {
+                        this.mediaRecorder.start(250); // Every 250ms
+                    } catch (startError) {
+                        console.log('Trying start without timeslice:', startError);
+                        this.mediaRecorder.start(); // No timeslice for compatibility
+                    }
+                    
                     this.isRecording = true;
                     this.updateRecordingUI();
                     this.startRecordingTimer();
+                    
+                    console.log('Recording started successfully');
 
                 } catch (error) {
                     console.error('Error starting recording:', error);
                     
-                    let errorMessage = 'Could not access microphone. ';
+                    let errorMessage = 'Could not start recording. ';
                     if (error.name === 'NotAllowedError') {
-                        errorMessage += 'Please allow microphone access in your browser settings and try again.';
+                        errorMessage += 'Please allow microphone access in your browser settings and try again. On iOS, make sure Safari has microphone permission.';
                     } else if (error.name === 'NotFoundError') {
                         errorMessage += 'No microphone found on this device.';
                     } else if (error.name === 'NotSupportedError') {
-                        errorMessage += 'Voice recording is not supported on this browser. Try Chrome or Safari.';
+                        errorMessage += 'Voice recording is not supported on this browser. Try using Chrome on Android or Safari on iOS.';
                     } else if (error.name === 'NotReadableError') {
                         errorMessage += 'Microphone is being used by another application. Please close other apps and try again.';
+                    } else if (error.name === 'OverconstrainedError') {
+                        errorMessage += 'Audio constraints not supported. The app will try again with basic settings.';
+                        // You could retry here with even more basic constraints
                     } else {
-                        errorMessage += 'Please check your microphone permissions and try again.';
+                        errorMessage += `Error: ${error.message}. Please check your microphone permissions and try again.`;
                     }
                     
                     alert(errorMessage);
@@ -699,19 +758,29 @@ Format as a JSON-like structure for easy parsing.`
                     const base64Audio = await this.blobToBase64(audioBlob);
                     
                     // Get the correct MIME type for the audio
-                    const mimeType = audioBlob.type || 'audio/webm';
-                    console.log('Audio blob size:', audioBlob.size, 'MIME type:', mimeType);
+                    let mimeType = audioBlob.type || 'audio/webm';
                     
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.GEMINI_API_KEY}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [
-                                    {
-                                        text: `You are a transcription assistant. Please transcribe the audio exactly as spoken. 
+                    // Map mobile browser MIME types to API-compatible formats
+                    if (mimeType.includes('mp4') || mimeType.includes('m4a')) {
+                        mimeType = 'audio/mp4';
+                    } else if (mimeType.includes('ogg')) {
+                        mimeType = 'audio/ogg';
+                    } else if (mimeType.includes('wav')) {
+                        mimeType = 'audio/wav';
+                    } else {
+                        // Default to webm for unknown formats
+                        mimeType = 'audio/webm';
+                    }
+                    
+                    console.log('Audio blob size:', audioBlob.size, 'bytes');
+                    console.log('Original MIME type:', audioBlob.type);
+                    console.log('API MIME type:', mimeType);
+                    
+                    const requestBody = {
+                        contents: [{
+                            parts: [
+                                {
+                                    text: `You are a transcription assistant. Please transcribe the audio exactly as spoken. 
 
 - If the audio is in English, just provide the transcription
 - If the audio is in another language, provide both the original transcription and English translation
@@ -721,28 +790,38 @@ Format as a JSON-like structure for easy parsing.`
 Format your response as:
 TRANSCRIPTION: [exactly what was said]
 TRANSLATION: [English translation if needed, otherwise "N/A"]`
-                                    },
-                                    {
-                                        inline_data: {
-                                            mime_type: mimeType,
-                                            data: base64Audio.split(',')[1]
-                                        }
+                                },
+                                {
+                                    inline_data: {
+                                        mime_type: mimeType,
+                                        data: base64Audio.split(',')[1]
                                     }
-                                ]
-                            }],
-                            generationConfig: {
-                                temperature: 0.1,
-                                maxOutputTokens: 300,
-                            }
-                        })
+                                }
+                            ]
+                        }],
+                        generationConfig: {
+                            temperature: 0.1,
+                            maxOutputTokens: 300,
+                        }
+                    };
+
+                    console.log('Sending request to Gemini API...');
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.GEMINI_API_KEY}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
                     });
 
                     if (!response.ok) {
                         const errorText = await response.text();
+                        console.error('API Response Error:', response.status, errorText);
                         throw new Error(`API Error ${response.status}: ${errorText}`);
                     }
 
                     const data = await response.json();
+                    console.log('API Response:', data);
                     
                     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
                         throw new Error('Invalid response from API - no content generated');
@@ -764,6 +843,8 @@ TRANSLATION: [English translation if needed, otherwise "N/A"]`
                         finalText += ` (${translation})`;
                     }
                     
+                    // Provide feedback about successful transcription
+                    console.log('Transcription successful:', finalText);
                     this.addVoiceContentToEntry(finalText);
 
                 } catch (error) {
@@ -772,17 +853,19 @@ TRANSLATION: [English translation if needed, otherwise "N/A"]`
                     let userMessage = 'Error processing audio. ';
                     
                     if (error.message.includes('API Error 400')) {
-                        userMessage += 'The audio format may not be supported. Please try recording again.';
+                        userMessage += 'The audio format may not be supported by the AI service. Try recording again or speaking more clearly.';
                     } else if (error.message.includes('API Error 401') || error.message.includes('API Error 403')) {
-                        userMessage += 'Authentication error. Please contact support.';
+                        userMessage += 'Authentication error with the AI service. Please contact support.';
                     } else if (error.message.includes('API Error 429')) {
-                        userMessage += 'Too many requests. Please wait a moment and try again.';
+                        userMessage += 'Too many requests to the AI service. Please wait a moment and try again.';
                     } else if (error.message.includes('Invalid response')) {
-                        userMessage += 'The AI could not process your audio. Please try speaking more clearly.';
+                        userMessage += 'The AI could not process your audio. Please try speaking more clearly and ensure good audio quality.';
                     } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                        userMessage += 'Network error. Please check your internet connection.';
+                        userMessage += 'Network error. Please check your internet connection and try again.';
+                    } else if (error.message.includes('Failed to fetch')) {
+                        userMessage += 'Connection error. Please check your internet connection and try again.';
                     } else {
-                        userMessage += 'Please try again or check your microphone.';
+                        userMessage += `Error: ${error.message}. Please try again or check your microphone.`;
                     }
                     
                     alert(userMessage);
