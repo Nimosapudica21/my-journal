@@ -46,7 +46,7 @@
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0 relative">
             <button id="backBtn" class="touch-target flex items-center justify-center sm:justify-start text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors bg-white/50 dark:bg-gray-800/50 rounded-xl px-4 py-2 sm:bg-transparent">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -57,16 +57,15 @@
                 <h1 class="text-2xl sm:text-3xl font-light text-gray-800 dark:text-gray-100">Journal Entry</h1>
                 <p class="text-gray-600 dark:text-gray-400 text-sm" id="entryDate"></p>
             </div>
-            <div class="flex items-center space-x-3">
-                <!-- Music Control -->
-                <button id="musicToggle" class="touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600" title="Play ambient music">
-                    <div class="flex items-center space-x-2">
-                        <svg id="musicIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <!-- Play icon (default state) -->
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
-                        </svg>
-                        <span id="musicLabel" class="text-xs font-medium hidden sm:inline">Play Music</span>
-                    </div>
+            
+            <!-- Music Control - Top Right Corner -->
+            <div class="absolute top-0 right-0">
+                <button id="musicToggle" class="touch-target p-2 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600 flex flex-col items-center space-y-1" title="Play ambient music">
+                    <svg id="musicIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Play icon (default state) -->
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v14l11-7z"></path>
+                    </svg>
+                    <span id="musicLabel" class="text-xs font-medium text-gray-600 dark:text-gray-400">Play Music</span>
                 </button>
             </div>
         </div>
@@ -615,7 +614,7 @@ Format as a JSON-like structure for easy parsing.`
 
                 if (state === 'play') {
                     // Play state styling
-                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600';
+                    musicToggle.className = 'touch-target p-2 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 shadow-sm border border-gray-200 dark:border-gray-600 flex flex-col items-center space-y-1';
                     musicToggle.title = 'Play ambient music';
                     
                     // Play icon
@@ -625,10 +624,11 @@ Format as a JSON-like structure for easy parsing.`
                     
                     if (musicLabel) {
                         musicLabel.textContent = 'Play Music';
+                        musicLabel.className = 'text-xs font-medium text-gray-600 dark:text-gray-400';
                     }
                 } else {
                     // Pause state styling
-                    musicToggle.className = 'touch-target p-2 sm:p-3 bg-green-500 dark:bg-green-600 text-white rounded-xl hover:bg-green-600 dark:hover:bg-green-700 transition-all duration-200 shadow-lg border border-green-400 dark:border-green-500';
+                    musicToggle.className = 'touch-target p-2 bg-green-500 dark:bg-green-600 text-white rounded-xl hover:bg-green-600 dark:hover:bg-green-700 transition-all duration-200 shadow-lg border border-green-400 dark:border-green-500 flex flex-col items-center space-y-1';
                     musicToggle.title = 'Pause ambient music';
                     
                     // Pause icon
@@ -638,6 +638,7 @@ Format as a JSON-like structure for easy parsing.`
                     
                     if (musicLabel) {
                         musicLabel.textContent = 'Playing...';
+                        musicLabel.className = 'text-xs font-medium text-white';
                     }
                 }
             }
