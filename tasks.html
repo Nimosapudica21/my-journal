@@ -215,11 +215,66 @@
                     this.addTask();
                 });
 
+                // Filter and sort controls
+                document.getElementById('filterDate').addEventListener('change', () => {
+                    this.applyFilters();
+                });
+
+                document.getElementById('filterPriority').addEventListener('change', () => {
+                    this.applyFilters();
+                });
+
+                document.getElementById('showCompleted').addEventListener('click', () => {
+                    this.currentFilter.showCompleted = !this.currentFilter.showCompleted;
+                    this.applyFilters();
+                });
+
+                document.getElementById('clearCompleted').addEventListener('click', () => {
+                    this.clearCompleted();
+                });
+
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         window.location.href = 'index.html';
                     }
                 });
+            }
+
+            applyFilters() {
+                this.renderTasks();
+                this.updateStatistics();
+            }
+
+            clearCompleted() {
+                if (confirm('Are you sure you want to clear all completed tasks?')) {
+                    Object.keys(this.tasks).forEach(date => {
+                        this.tasks[date] = this.tasks[date].filter(task => !task.completed);
+                        if (this.tasks[date].length === 0) {
+                            delete this.tasks[date];
+                        }
+                    });
+                    this.saveTasks();
+                    this.renderTasks();
+                    this.updateStatistics();
+                }
+            }
+
+            updateStatistics() {
+                const todaysTasks = this.tasks[this.currentDate] || [];
+                const completed = todaysTasks.filter(task => task.completed).length;
+                const pending = todaysTasks.length - completed;
+                
+                // Calculate overdue tasks (simplified for today's tasks)
+                const overdue = 0; // For now, just set to 0
+                
+                document.getElementById('totalTasks').textContent = todaysTasks.length;
+                document.getElementById('completedTasks').textContent = completed;
+                document.getElementById('pendingTasks').textContent = pending;
+                document.getElementById('overdueTasks').textContent = overdue;
+            }
+
+            setDefaultDate() {
+                document.getElementById('taskDate').value = this.currentDate;
             }
 
             addTask() {

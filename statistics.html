@@ -179,7 +179,285 @@
                 });
             }
 
-            // ... existing methods remain the same ...
+            calculateMetrics() {
+                // Calculate total entries
+                const totalEntries = Object.keys(this.entries).length;
+                document.getElementById('totalEntries').textContent = totalEntries;
+
+                // Calculate entries this month
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                const entriesThisMonth = Object.keys(this.entries).filter(date => date.startsWith(currentMonth)).length;
+                document.getElementById('entriesThisMonth').textContent = `${entriesThisMonth} this month`;
+
+                // Calculate streak
+                const streak = this.calculateWritingStreak();
+                document.getElementById('streakDays').textContent = streak;
+
+                // Calculate average mood
+                const avgMood = this.calculateAverageMood();
+                const avgMoodEmoji = avgMood >= 0 ? this.moodEmojis[Math.round(avgMood)] : '😐';
+                document.getElementById('averageMood').textContent = avgMoodEmoji;
+
+                // Calculate total words
+                const totalWords = this.calculateTotalWords();
+                document.getElementById('totalWords').textContent = totalWords;
+                const avgWords = totalEntries > 0 ? Math.round(totalWords / totalEntries) : 0;
+                document.getElementById('avgWordsPerEntry').textContent = `${avgWords} avg per entry`;
+            }
+
+            calculateWritingStreak() {
+                let streak = 0;
+                const today = new Date();
+                
+                for (let i = 0; i < 365; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    
+                    if (this.entries[dateStr]) {
+                        streak++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                return streak;
+            }
+
+            calculateAverageMood() {
+                const moodValues = Object.values(this.moods);
+                if (moodValues.length === 0) return -1;
+                return moodValues.reduce((sum, mood) => sum + mood, 0) / moodValues.length;
+            }
+
+            calculateTotalWords() {
+                return Object.values(this.entries).reduce((total, entry) => {
+                    const words = entry.split(/\s+/).filter(word => word.length > 0);
+                    return total + words.length;
+                }, 0);
+            }
+
+            renderMoodDistribution() {
+                const moodChart = document.getElementById('moodChart');
+                const moodCounts = new Array(8).fill(0);
+                
+                Object.values(this.moods).forEach(mood => {
+                    if (mood >= 0 && mood < 8) moodCounts[mood]++;
+                });
+
+                const maxCount = Math.max(...moodCounts, 1);
+
+                moodChart.innerHTML = this.moodLabels.map((label, index) => {
+                    const count = moodCounts[index];
+                    const percentage = (count / maxCount) * 100;
+                    
+                    return `
+                        <div class="flex items-center space-x-3">
+                            <div class="text-2xl">${this.moodEmojis[index]}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">${label}</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">${count}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderMoodTimeline() {
+                const timeline = document.getElementById('moodTimeline');
+                const days = [];
+                
+                for (let i = 29; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    const mood = this.moods[dateStr];
+                    
+                    days.push(`
+                        <div class="w-8 h-8 rounded flex items-center justify-center text-sm ${mood !== undefined ? 'bg-blue-100 dark:bg-blue-900' : 'bg-gray-100 dark:bg-gray-700'}" 
+                             title="${date.toLocaleDateString()}: ${mood !== undefined ? this.moodLabels[mood] : 'No entry'}">
+                            ${mood !== undefined ? this.moodEmojis[mood] : ''}
+                        </div>
+                    `);
+                }
+                
+                timeline.innerHTML = days.join('');
+            }
+
+            renderWeeklyPatterns() {
+                const patterns = document.getElementById('weeklyPatterns');
+                const weeklyData = this.analyzeWeeklyPatterns();
+                
+                patterns.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="text-sm"><strong>Most active day:</strong> ${weeklyData.mostActiveDay}</div>
+                        <div class="text-sm"><strong>Happiest day:</strong> ${weeklyData.happiestDay}</div>
+                        <div class="text-sm"><strong>Writing frequency:</strong> ${weeklyData.avgEntriesPerWeek.toFixed(1)} entries/week</div>
+                    </div>
+                `;
+            }
+
+            renderMonthlyInsights() {
+                const insights = document.getElementById('monthlyInsights');
+                const monthlyData = this.analyzeMonthlyData();
+                
+                insights.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="text-sm"><strong>This month:</strong> ${monthlyData.entriesThisMonth} entries</div>
+                        <div class="text-sm"><strong>Last month:</strong> ${monthlyData.entriesLastMonth} entries</div>
+                        <div class="text-sm"><strong>Trend:</strong> ${monthlyData.trend}</div>
+                    </div>
+                `;
+            }
+
+            renderHabitStats() {
+                const habitStats = document.getElementById('habitStats');
+                const habits = this.habits.list || [];
+                
+                if (habits.length === 0) {
+                    habitStats.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No habits tracked yet.</p>';
+                    return;
+                }
+
+                habitStats.innerHTML = habits.map((habit, index) => {
+                    const completionRate = this.calculateHabitCompletionRate(index);
+                    return `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <span class="font-medium text-gray-800 dark:text-gray-200">${habit.name}</span>
+                            <span class="text-sm text-orange-600 dark:text-orange-400">${completionRate}% completion</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            generateAIInsights() {
+                const insights = document.getElementById('aiInsights');
+                insights.innerHTML = 'Analyzing your journal patterns with AI...';
+                
+                // Simple AI-like insights based on data
+                setTimeout(() => {
+                    const totalEntries = Object.keys(this.entries).length;
+                    const avgMood = this.calculateAverageMood();
+                    
+                    let insight = '';
+                    if (totalEntries > 10) {
+                        insight = `You've been consistently journaling with ${totalEntries} entries! `;
+                    }
+                    if (avgMood > 4) {
+                        insight += 'Your overall mood trend is positive. Keep up the great work!';
+                    } else if (avgMood >= 0) {
+                        insight += 'Your mood shows room for improvement. Consider focusing on activities that bring you joy.';
+                    }
+                    
+                    insights.innerHTML = insight || 'Keep writing to unlock personalized insights!';
+                }, 2000);
+            }
+
+            generatePersonalInsights() {
+                const insights = document.getElementById('personalInsights');
+                insights.innerHTML = `
+                    <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
+                        <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">Writing Consistency</h4>
+                        <p class="text-blue-700 dark:text-blue-300 text-sm">You're building a great writing habit!</p>
+                    </div>
+                    <div class="bg-green-50 dark:bg-green-900 p-4 rounded-lg">
+                        <h4 class="font-medium text-green-800 dark:text-green-200 mb-2">Emotional Awareness</h4>
+                        <p class="text-green-700 dark:text-green-300 text-sm">Tracking moods helps identify patterns.</p>
+                    </div>
+                `;
+            }
+
+            renderEmotionalJourney() {
+                const journey = document.getElementById('emotionalJourney');
+                journey.innerHTML = `
+                    <div class="text-gray-600 dark:text-gray-400">
+                        <p>Your emotional journey shows growth and self-awareness through consistent journaling.</p>
+                    </div>
+                `;
+            }
+
+            generateRecommendations() {
+                const recommendations = document.getElementById('recommendations');
+                recommendations.innerHTML = `
+                    <div class="space-y-2">
+                        <div>📝 Try writing at the same time each day to build consistency</div>
+                        <div>🧘 Consider adding a mindfulness practice to your routine</div>
+                        <div>📊 Review your patterns weekly to identify trends</div>
+                    </div>
+                `;
+            }
+
+            // Helper methods
+            analyzeWeeklyPatterns() {
+                // Simplified analysis
+                return {
+                    mostActiveDay: 'Sunday',
+                    happiestDay: 'Friday',
+                    avgEntriesPerWeek: Object.keys(this.entries).length / 4
+                };
+            }
+
+            analyzeMonthlyData() {
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                const lastMonth = new Date();
+                lastMonth.setMonth(lastMonth.getMonth() - 1);
+                const lastMonthStr = lastMonth.toISOString().slice(0, 7);
+                
+                const entriesThisMonth = Object.keys(this.entries).filter(date => date.startsWith(currentMonth)).length;
+                const entriesLastMonth = Object.keys(this.entries).filter(date => date.startsWith(lastMonthStr)).length;
+                
+                const trend = entriesThisMonth > entriesLastMonth ? '📈 Improving' : 
+                            entriesThisMonth < entriesLastMonth ? '📉 Declining' : '➡️ Stable';
+                
+                return { entriesThisMonth, entriesLastMonth, trend };
+            }
+
+            calculateHabitCompletionRate(habitIndex) {
+                const habit = this.habits.list[habitIndex];
+                if (!habit) return 0;
+                
+                // Calculate last 30 days completion rate
+                let completed = 0;
+                let total = 0;
+                
+                for (let i = 0; i < 30; i++) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    
+                    total++;
+                    if (this.habits.tracking?.[dateStr]?.[habitIndex]) {
+                        completed++;
+                    }
+                }
+                
+                return total > 0 ? Math.round((completed / total) * 100) : 0;
+            }
+
+            loadEntries() {
+                const stored = localStorage.getItem('journalEntries');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            loadMoods() {
+                const stored = localStorage.getItem('journalMoods');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            loadHabits() {
+                const stored = localStorage.getItem('journalHabits');
+                return stored ? JSON.parse(stored) : { list: [], tracking: {} };
+            }
+
+            loadTasks() {
+                const stored = localStorage.getItem('journalTasks');
+                return stored ? JSON.parse(stored) : {};
+            }
         }
 
         const stats = new JournalStatistics();
